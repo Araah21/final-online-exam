@@ -144,4 +144,74 @@ app.get('/download-results', async (req, res) => {
     }
 });
 
+// --- START: NEW AND UPDATED ADMIN ROUTES ---
+
+// NEW: API endpoint to get results as JSON for the table
+app.get('/api/results', async (req, res) => {
+    try {
+        const { rows } = await pool.query('SELECT id, name, idNumber, examTitle, score, totalQuestions, submissionTime FROM results ORDER BY submissionTime DESC');
+        res.json(rows);
+    } catch (err) {
+        console.error("API Error fetching results:", err);
+        res.status(500).json({ message: "Failed to fetch results." });
+    }
+});
+
+// NEW: API endpoint to delete a single result
+app.delete('/api/results/:id', async (req, res) => {
+    const { id } = req.params;
+    const { adminKey } = req.body;
+
+    if (adminKey !== ADMIN_SECRET_KEY) {
+        return res.status(401).json({ message: "Unauthorized: Invalid Admin Key." });
+    }
+
+    try {
+        await pool.query('DELETE FROM results WHERE id = $1', [id]);
+        res.status(200).json({ message: `Result with ID ${id} deleted successfully.` });
+    } catch (err) {
+        console.error(`API Error deleting result ${id}:`, err);
+        res.status(500).json({ message: "Failed to delete result." });
+    }
+});
+
+// NEW: API endpoint to delete all results
+app.delete('/api/results/all', async (req, res) => {
+    const { adminKey } = req.body;
+
+    if (adminKey !== ADMIN_SECRET_KEY) {
+        return res.status(401).json({ message: "Unauthorized: Invalid Admin Key." });
+    }
+
+    try {
+        await pool.query('TRUNCATE TABLE results'); // TRUNCATE is faster than DELETE for clearing a whole table
+        res.status(200).json({ message: "All results have been cleared successfully." });
+    } catch (err) {
+        console.error("API Error clearing results table:", err);
+        res.status(500).json({ message: "Failed to clear results." });
+    }
+});
+
+
+// This route for the admin page itself remains the same
+app.get('/admin', (req, res) => {
+    res.sendFile(__dirname + '/admin.html');
+});
+
+// This route for downloading also remains the same
+app.get('/download-results', async (req, res) => {
+    // ... download logic remains the same ...
+    const sql = `SELECT id, name, course, section, idNumber, examTitle, score, totalQuestions, submissionTime FROM results ORDER BY submissionTime DESC`;
+    try {
+        const { rows } = await pool.query(sql);
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="exam_results.csv"');
+        res.status(200).send(Papa.unparse(rows));
+    } catch (err) {
+        res.status(500).send("Failed to retrieve data from the database.");
+    }
+});
+
+// --- END: NEW AND UPDATED ADMIN ROUTES ---
+
 app.listen(PORT, () => console.log(`Backend server is running on port ${PORT}`));

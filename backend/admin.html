@@ -2,37 +2,155 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Exam Admin</title>
+    <title>Exam Admin Dashboard</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f4; }
-        .container { text-align: center; }
-        .btn {
-            display: inline-block;
-            padding: 15px 30px;
-            font-size: 18px;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            outline: none;
-            color: #fff;
-            background-color: #4CAF50;
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 9px #999;
-        }
-        .btn:hover {background-color: #3e8e41}
-        .btn:active {
-            background-color: #3e8e41;
-            box-shadow: 0 5px #666;
-            transform: translateY(4px);
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; background-color: #f8f9fa; color: #212529; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1, h2 { color: #343a40; }
+        .controls { margin-bottom: 20px; display: flex; gap: 10px; }
+        .btn { padding: 10px 15px; font-size: 14px; cursor: pointer; text-decoration: none; color: #fff; border: none; border-radius: 5px; box-shadow: 0 2px #666; transition: all 0.2s ease; }
+        .btn:active { box-shadow: 0 0 #666; transform: translateY(2px); }
+        .btn-download { background-color: #28a745; }
+        .btn-download:hover { background-color: #218838; }
+        .btn-clear { background-color: #dc3545; }
+        .btn-clear:hover { background-color: #c82333; }
+        .btn-delete { background-color: #ffc107; color: #212529; padding: 5px 10px; font-size: 12px; }
+        .btn-delete:hover { background-color: #e0a800; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #dee2e6; text-align: left; }
+        th { background-color: #e9ecef; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Exam Results</h1>
-        <p>Click the button below to download all student exam results as an Excel-compatible CSV file.</p>
-        <a href="/download-results" class="btn">Download Results</a>
+        <h1>Exam Admin Dashboard</h1>
+        <div class="controls">
+            <a href="/download-results" class="btn btn-download">Download All as CSV</a>
+            <button id="clear-all-btn" class="btn btn-clear">Clear All Results</button>
+        </div>
+        <h2>Exam Results</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>ID Number</th>
+                    <th>Exam Title</th>
+                    <th>Score</th>
+                    <th>Submitted At</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="results-tbody">
+                </tbody>
+        </table>
     </div>
+
+    <script>
+        const resultsTbody = document.getElementById('results-tbody');
+        const clearAllBtn = document.getElementById('clear-all-btn');
+        let adminKey = ''; // Store key for the session
+
+        // Function to fetch and display results in the table
+        async function fetchAndDisplayResults() {
+            try {
+                const response = await fetch('/api/results');
+                if (!response.ok) throw new Error('Failed to fetch results.');
+                
+                const results = await response.json();
+                resultsTbody.innerHTML = ''; // Clear existing table rows
+
+                if (results.length === 0) {
+                    resultsTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No results found.</td></tr>';
+                    return;
+                }
+
+                results.forEach(result => {
+                    const row = document.createElement('tr');
+                    const submittedAt = new Date(result.submissiontime).toLocaleString();
+                    row.innerHTML = `
+                        <td>${result.id}</td>
+                        <td>${result.name}</td>
+                        <td>${result.idnumber}</td>
+                        <td>${result.examtitle}</td>
+                        <td>${result.score} / ${result.totalquestions}</td>
+                        <td>${submittedAt}</td>
+                        <td><button class="btn btn-delete" data-id="${result.id}">Delete</button></td>
+                    `;
+                    resultsTbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                resultsTbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Error loading results.</td></tr>`;
+            }
+        }
+
+        // Function to prompt for admin key if not already set
+        function getAdminKey() {
+            if (!adminKey) {
+                adminKey = prompt('Please enter the Admin Secret Key to perform this action:');
+            }
+            return adminKey;
+        }
+
+        // Event listener for deleting a single result
+        resultsTbody.addEventListener('click', async (event) => {
+            if (event.target.classList.contains('btn-delete')) {
+                const resultId = event.target.dataset.id;
+                if (!confirm(`Are you sure you want to delete result ID #${resultId}?`)) return;
+
+                const key = getAdminKey();
+                if (!key) return; // User cancelled the prompt
+
+                try {
+                    const response = await fetch(`/api/results/${resultId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ adminKey: key })
+                    });
+                    
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.message);
+                    
+                    alert(data.message);
+                    fetchAndDisplayResults(); // Refresh the table
+                } catch (error) {
+                    console.error('Delete error:', error);
+                    alert(`Error: ${error.message}`);
+                    adminKey = ''; // Clear key on failure
+                }
+            }
+        });
+
+        // Event listener for clearing all results
+        clearAllBtn.addEventListener('click', async () => {
+            if (!confirm('ARE YOU SURE you want to permanently delete ALL exam results? This action cannot be undone.')) return;
+
+            const key = getAdminKey();
+            if (!key) return; // User cancelled the prompt
+
+            try {
+                const response = await fetch('/api/results/all', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminKey: key })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message);
+
+                alert(data.message);
+                fetchAndDisplayResults(); // Refresh the table
+            } catch (error) {
+                console.error('Clear all error:', error);
+                alert(`Error: ${error.message}`);
+                adminKey = ''; // Clear key on failure
+            }
+        });
+
+        // Initial load of the results table
+        fetchAndDisplayResults();
+    </script>
 </body>
 </html>
