@@ -41,8 +41,15 @@ const createTable = async () => {
 createTable();
 
 // --- Middleware ---
-app.use(cors());
-app.use(express.json());
+
+// REPLACE THE OLD app.use(cors()); LINE WITH THIS BLOCK
+const corsOptions = {
+  origin: 'https://araah21.github.io', // This is your frontend's exact address
+  optionsSuccessStatus: 200 // For legacy browser support
+};
+app.use(cors(corsOptions));
+
+app.use(express.json()); // This line should come after the cors configuration
 
 // --- Routes ---
 app.get('/', (req, res) => {
