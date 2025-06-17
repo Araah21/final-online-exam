@@ -149,6 +149,24 @@ app.get('/api/results', async (req, res) => {
     }
 });
 
+// CORRECTED ORDER: The more specific '/all' route now comes first.
+app.delete('/api/results/all', async (req, res) => {
+    const { adminKey } = req.body;
+
+    if (adminKey !== ADMIN_SECRET_KEY) {
+        return res.status(401).json({ message: "Unauthorized: Invalid Admin Key." });
+    }
+
+    try {
+        await pool.query('TRUNCATE TABLE results RESTART IDENTITY');
+        res.status(200).json({ message: "All results have been cleared successfully." });
+    } catch (err) {
+        console.error("API Error clearing results table:", err);
+        res.status(500).json({ message: "Failed to clear results." });
+    }
+});
+
+// CORRECTED ORDER: The general '/:id' route now comes second.
 app.delete('/api/results/:id', async (req, res) => {
     const { id } = req.params;
     const { adminKey } = req.body;
@@ -166,20 +184,8 @@ app.delete('/api/results/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/results/all', async (req, res) => {
-    const { adminKey } = req.body;
-
-    if (adminKey !== ADMIN_SECRET_KEY) {
-        return res.status(401).json({ message: "Unauthorized: Invalid Admin Key." });
-    }
-
-    try {
-        await pool.query('TRUNCATE TABLE results RESTART IDENTITY');
-        res.status(200).json({ message: "All results have been cleared successfully." });
-    } catch (err) {
-        console.error("API Error clearing results table:", err);
-        res.status(500).json({ message: "Failed to clear results." });
-    }
+app.get('/download-results', async (req, res) => {
+    // ... download logic ...
 });
 
 app.get('/download-results', async (req, res) => {
