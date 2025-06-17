@@ -215,6 +215,40 @@ app.get('/api/analysis', async (req, res) => {
     }
 });
 
+    // --- NEW --- API endpoint to download the question analysis as a CSV
+app.get('/api/analysis/download', async (req, res) => {
+    const analysisQuery = `
+        SELECT
+            question_text,
+            COUNT(*) AS total_attempts,
+            SUM(CASE WHEN is_correct = true THEN 1 ELSE 0 END) AS correct_answers,
+            (SUM(CASE WHEN is_correct = true THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS success_rate_percent
+        FROM
+            student_answers
+        GROUP BY
+            question_text
+        ORDER BY
+            total_attempts DESC;
+    `;
+    try {
+        const { rows } = await pool.query(analysisQuery);
+        // Rename columns for a friendlier CSV header
+        const formattedRows = rows.map(row => ({
+            Question: row.question_text,
+            'Total Attempts': row.total_attempts,
+            'Correct Answers': row.correct_answers,
+            'Success Rate (%)': parseFloat(row.success_rate_percent).toFixed(2)
+        }));
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="exam_question_analysis.csv"');
+        res.status(200).send(Papa.unparse(formattedRows));
+    } catch (err) {
+        console.error("API Error fetching analysis for download:", err);
+        res.status(500).send("Failed to retrieve analysis data for download.");
+    }
+});
+
 app.delete('/api/results/all', async (req, res) => {
     const { adminKey } = req.body;
     if (adminKey !== ADMIN_SECRET_KEY) {
