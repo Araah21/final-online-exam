@@ -141,3 +141,19 @@ header h1 {
     -ms-user-select: none; /* IE 10+ */
     user-select: none; /* Standard syntax */
 }
+
+/* Watermark Styling */
+body.exam-active::after {
+    content: attr(data-watermark); /* Use the text from a data-attribute */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: 4rem; /* Large font size */
+    color: rgba(0, 0, 0, 0.08); /* Faint, semi-transparent color */
+    font-weight: bold;
+    z-index: 9999;
+    pointer-events: none; /* Allows clicks to pass through the watermark */
+    text-align: center;
+    white-space: pre; /* Allows line breaks */
+}
