@@ -16,8 +16,10 @@ const pool = new Pool({
 });
 
 // --- Create the 'results' table if it doesn't exist ---
+// --- Create ALL tables if they don't exist ---
 const createTable = async () => {
-    const queryText = `
+    // Query for creating the 'results' table (no changes here)
+    const createResultsTableQuery = `
     CREATE TABLE IF NOT EXISTS results (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
@@ -29,13 +31,31 @@ const createTable = async () => {
         totalQuestions INTEGER NOT NULL,
         submissionTime TIMESTAMPTZ DEFAULT NOW()
     );`;
+
+    // --- NEW --- Query for creating the 'students' table
+    const createStudentsTableQuery = `
+    CREATE TABLE IF NOT EXISTS students (
+        id SERIAL PRIMARY KEY,
+        id_number VARCHAR(50) UNIQUE NOT NULL,
+        lastname VARCHAR(100) NOT NULL,
+        firstname VARCHAR(100) NOT NULL,
+        course VARCHAR(100),
+        section VARCHAR(50),
+        exam_taken_at TIMESTAMPTZ NULL
+    );`;
+
     try {
-        await pool.query(queryText);
+        // Run both queries when the server starts
+        await pool.query(createResultsTableQuery);
         console.log("Table 'results' is ready.");
+        await pool.query(createStudentsTableQuery);
+        console.log("Table 'students' is ready.");
     } catch (err) {
-        console.error("Error creating table", err);
+        console.error("Error creating tables", err);
     }
 };
+
+// This line that calls the function remains the same
 createTable();
 
 // --- Middleware ---
