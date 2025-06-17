@@ -163,7 +163,7 @@ function submitExam() {
     };
 
     // Use fetch() to send the data to your server
-    fetch('https://my-exam-server.onrender.com/submit-exam', { // <-- IMPORTANT: Use your server's actual URL
+    fetch('https://csuaparr-final-online-exam.onrender.com/submit-exam', { // <-- IMPORTANT: Use your server's actual URL
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
