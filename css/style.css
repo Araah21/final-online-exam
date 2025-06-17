@@ -157,3 +157,70 @@ body.exam-active::after {
     text-align: center;
     white-space: pre; /* Allows line breaks */
 }
+
+/* --- Styles for One-Question-at-a-Time Layout --- */
+.exam-main-container {
+    display: flex;
+    gap: 20px;
+}
+
+.exam-questions-area {
+    flex-grow: 1;
+}
+
+.question-wrapper {
+    display: none; /* Hide all questions by default */
+}
+
+.question-wrapper.active {
+    display: block; /* Show only the active question */
+}
+
+.exam-navigation-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.exam-navigator {
+    width: 200px;
+    padding-left: 20px;
+    border-left: 1px solid #e0e0e0;
+}
+
+.exam-navigator h3 {
+    margin-top: 0;
+}
+
+.navigator-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+}
+
+.nav-btn {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 5px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.nav-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.nav-btn.answered {
+    background-color: #d4edda; /* Green for answered */
+    border-color: #c3e6cb;
+}
+
+.nav-btn.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056b3;
+}

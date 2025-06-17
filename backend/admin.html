@@ -38,6 +38,18 @@
             </thead>
             <tbody id="students-tbody"></tbody>
         </table>
+        <h2>Question Performance Analysis</h2>
+<table id="analysis-table">
+    <thead>
+        <tr>
+            <th>Question</th>
+            <th>Total Attempts</th>
+            <th>Correct Answers</th>
+            <th>Success Rate</th>
+        </tr>
+    </thead>
+    <tbody id="analysis-tbody"></tbody>
+</table>
 
         <h2>Exam Results</h2>
         <div class="controls">
@@ -206,6 +218,39 @@
         // Initial load of both tables
         fetchAndDisplayResults();
         fetchAndDisplayStudents();
+
+        // In the <script> tag of admin.html
+const analysisTbody = document.getElementById('analysis-tbody');
+
+async function fetchAndDisplayAnalysis() {
+    try {
+        const response = await fetch('/api/analysis');
+        const analysisData = await response.json();
+        analysisTbody.innerHTML = '';
+        analysisData.forEach(item => {
+            const row = document.createElement('tr');
+            const successRate = (item.total_attempts > 0) 
+                ? ((item.correct_answers / item.total_attempts) * 100).toFixed(1) + '%' 
+                : '0%';
+            row.innerHTML = `
+                <td>${item.question_text}</td>
+                <td>${item.total_attempts}</td>
+                <td>${item.correct_answers}</td>
+                <td>${successRate}</td>
+            `;
+            analysisTbody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error loading analysis:', error);
+        analysisTbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Error loading analysis.</td></tr>`;
+    }
+}
+
+    // In the script tag, find the last lines and add the new function call
+    // Initial load of all tables
+    fetchAndDisplayResults();
+    fetchAndDisplayStudents();
+    fetchAndDisplayAnalysis(); // <-- ADD THIS LINE
     </script>
 </body>
 </html>

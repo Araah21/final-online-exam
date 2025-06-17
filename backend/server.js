@@ -1,4 +1,4 @@
-// server.js - FINAL VERSION WITH "ALLOW RETAKE" FEATURE
+// server.js - COMPLETE AND FINAL VERSION
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -11,11 +11,60 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY;
 
+// --- Database Connection ---
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
+// --- Create ALL tables if they don't exist on startup ---
+const createTables = async () => {
+    const createResultsTableQuery = `
+    CREATE TABLE IF NOT EXISTS results (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        course TEXT,
+        section TEXT,
+        idNumber TEXT NOT NULL,
+        examTitle TEXT NOT NULL,
+        score INTEGER NOT NULL,
+        totalQuestions INTEGER NOT NULL,
+        submissionTime TIMESTAMPTZ DEFAULT NOW()
+    );`;
+    const createStudentsTableQuery = `
+    CREATE TABLE IF NOT EXISTS students (
+        id SERIAL PRIMARY KEY,
+        id_number VARCHAR(50) UNIQUE NOT NULL,
+        lastname VARCHAR(100) NOT NULL,
+        firstname VARCHAR(100) NOT NULL,
+        course VARCHAR(100),
+        section VARCHAR(50),
+        exam_taken_at TIMESTAMPTZ NULL
+    );`;
+    const createAnswersTableQuery = `
+    CREATE TABLE IF NOT EXISTS student_answers (
+        id SERIAL PRIMARY KEY,
+        result_id INTEGER REFERENCES results(id) ON DELETE CASCADE,
+        question_text TEXT NOT NULL,
+        student_answer TEXT NOT NULL,
+        correct_answer TEXT NOT NULL,
+        is_correct BOOLEAN NOT NULL
+    );`;
+
+    try {
+        await pool.query(createResultsTableQuery);
+        console.log("Table 'results' is ready.");
+        await pool.query(createStudentsTableQuery);
+        console.log("Table 'students' is ready.");
+        await pool.query(createAnswersTableQuery);
+        console.log("Table 'student_answers' is ready.");
+    } catch (err) {
+        console.error("Error creating tables on startup:", err);
+    }
+};
+createTables();
+
+// --- Middleware ---
 const corsOptions = {
   origin: 'https://araah21.github.io',
   optionsSuccessStatus: 200
@@ -23,6 +72,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// --- Authentication Middleware ---
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -64,7 +114,7 @@ app.post('/login', async (req, res) => {
 
 // --- Exam Submission Route ---
 app.post('/submit-exam', authenticateToken, async (req, res) => {
-    const studentData = req.body;
+    const { studentData, answers } = req.body;
     const studentIdNumber = req.user.idNumber;
     console.log(`Received submission from authenticated user: ${req.user.name} (${studentIdNumber})`);
     
@@ -79,7 +129,14 @@ app.post('/submit-exam', authenticateToken, async (req, res) => {
             studentData.totalQuestions
         ];
         const result = await client.query(insertResultQuery, resultParams);
-        console.log(`Saved submission with ID: ${result.rows[0].id}`);
+        const resultId = result.rows[0].id;
+        console.log(`Saved submission with ID: ${resultId}`);
+
+        for (const answer of answers) {
+            const answerQuery = `INSERT INTO student_answers (result_id, question_text, student_answer, correct_answer, is_correct)
+                                 VALUES ($1, $2, $3, $4, $5)`;
+            await client.query(answerQuery, [resultId, answer.question, answer.studentAnswer, answer.correctAnswer, answer.isCorrect]);
+        }
 
         const updateStudentQuery = 'UPDATE students SET exam_taken_at = NOW() WHERE id_number = $1';
         await client.query(updateStudentQuery, [studentIdNumber]);
@@ -101,7 +158,6 @@ app.get('/admin', (req, res) => {
     res.sendFile(__dirname + '/admin.html');
 });
 
-// --- NEW --- API endpoint to get the full student roster
 app.get('/api/students', async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT id, firstname, lastname, id_number, exam_taken_at FROM students ORDER BY lastname, firstname');
@@ -112,15 +168,12 @@ app.get('/api/students', async (req, res) => {
     }
 });
 
-// --- NEW --- API endpoint to reset a student's exam status
 app.put('/api/students/:id/reset', async (req, res) => {
     const { id } = req.params;
     const { adminKey } = req.body;
-
     if (adminKey !== ADMIN_SECRET_KEY) {
         return res.status(401).json({ message: "Unauthorized: Invalid Admin Key." });
     }
-
     try {
         await pool.query('UPDATE students SET exam_taken_at = NULL WHERE id = $1', [id]);
         res.status(200).json({ message: `Student ID #${id} has been reset and can now retake the exam.` });
@@ -137,6 +190,28 @@ app.get('/api/results', async (req, res) => {
     } catch (err) {
         console.error("API Error fetching results:", err);
         res.status(500).json({ message: "Failed to fetch results." });
+    }
+});
+
+app.get('/api/analysis', async (req, res) => {
+    const analysisQuery = `
+        SELECT
+            question_text,
+            COUNT(*) AS total_attempts,
+            SUM(CASE WHEN is_correct = true THEN 1 ELSE 0 END) AS correct_answers
+        FROM
+            student_answers
+        GROUP BY
+            question_text
+        ORDER BY
+            total_attempts DESC;
+    `;
+    try {
+        const { rows } = await pool.query(analysisQuery);
+        res.json(rows);
+    } catch (err) {
+        console.error("API Error fetching analysis:", err);
+        res.status(500).json({ message: "Failed to fetch analysis." });
     }
 });
 
@@ -181,4 +256,5 @@ app.get('/download-results', async (req, res) => {
     }
 });
 
+// --- Start the Server ---
 app.listen(PORT, () => console.log(`Backend server is running on port ${PORT}`));

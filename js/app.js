@@ -1,4 +1,4 @@
-// app.js - FINAL VERSION WITH AUTHENTICATION
+// app.js - COMPLETE AND FINAL VERSION
 document.addEventListener('DOMContentLoaded', () => {
     const page = window.location.pathname.split("/").pop();
 
@@ -15,13 +15,14 @@ function handleLoginPage() {
     const loginForm = document.getElementById('student-login-form');
     const errorMessageDiv = document.getElementById('error-message');
 
-    // This prevents an error if the element doesn't exist on other pages
     if (!loginForm) return;
 
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        errorMessageDiv.textContent = ''; // Clear previous errors
-        document.querySelector('#student-login-form button').disabled = true; // Disable button
+        errorMessageDiv.textContent = '';
+        const submitButton = loginForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Logging in...';
 
         const lastname = document.getElementById('lastname').value;
         const idNumber = document.getElementById('idNumber').value;
@@ -34,14 +35,11 @@ function handleLoginPage() {
                 body: JSON.stringify({ lastname, idNumber })
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Login failed.');
-            }
-
             const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Login failed.');
+            }
             
-            // Login successful, save token and student info
             localStorage.setItem('authToken', data.accessToken);
             localStorage.setItem('studentInfo', JSON.stringify(data.studentDetails));
             localStorage.setItem('examType', examType);
@@ -50,7 +48,8 @@ function handleLoginPage() {
 
         } catch (error) {
             errorMessageDiv.textContent = error.message;
-            document.querySelector('#student-login-form button').disabled = false; // Re-enable button on error
+            submitButton.disabled = false;
+            submitButton.textContent = 'Login and Start Exam';
             console.error('Login Error:', error);
         }
     });
@@ -65,61 +64,98 @@ function handleExamPage() {
         window.location.href = 'index.html';
         return;
     }
-    
+
     const examData = exams[examType];
+    const allQuestions = examData.parts.flatMap(part => part.questions);
+    let currentQuestionIndex = 0;
+
     const examForm = document.getElementById('exam-form');
-    let questionCounter = 0;
+    const navigatorGrid = document.getElementById('navigator-grid');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-exam');
 
     document.getElementById('exam-title').textContent = examData.title;
     document.getElementById('student-name').textContent = `${studentInfo.firstname} ${studentInfo.lastname}`;
     document.getElementById('student-id').textContent = studentInfo.id_number;
-    // --- NEW: Apply the dynamic watermark ---
-    const studentNameForWatermark = `${studentInfo.firstname} ${studentInfo.lastname}\n${studentInfo.id_number}`;
 
-    document.body.classList.add('exam-active');
-    document.body.setAttribute('data-watermark', studentNameForWatermark);
+    // --- Create all question elements and navigator buttons ---
+    allQuestions.forEach((q, index) => {
+        const questionWrapper = document.createElement('div');
+        questionWrapper.className = 'question-wrapper';
+        questionWrapper.id = `question-wrapper-${index}`;
+        
+        const questionBlock = document.createElement('div');
+        questionBlock.className = 'question-block';
+        questionBlock.innerHTML = `<p>${index + 1}. ${q.q}</p>`;
 
-    examData.parts.forEach(part => {
-        const partTitle = document.createElement('h2');
-        partTitle.textContent = part.title;
-        examForm.appendChild(partTitle);
-        part.questions.forEach(q => {
-            questionCounter++;
-            const questionBlock = document.createElement('div');
-            questionBlock.className = 'question-block';
-            questionBlock.innerHTML = `<p>${questionCounter}. ${q.q}</p>`;
-            const optionsDiv = document.createElement('div');
-            optionsDiv.className = 'options';
-            if (q.o) {
-                const optionLetters = ['A', 'B', 'C', 'D'];
-                q.o.forEach((option, index) => {
-                    const label = document.createElement('label');
-                    const radio = document.createElement('input');
-                    radio.type = 'radio';
-                    radio.name = `question${questionCounter}`;
-                    radio.value = optionLetters[index];
-                    label.appendChild(radio);
-                    label.append(` ${optionLetters[index]}) ${option}`);
-                    optionsDiv.appendChild(label);
-                });
-            } else {
-                const options = ['True', 'False'];
-                options.forEach(option => {
-                    const label = document.createElement('label');
-                    const radio = document.createElement('input');
-                    radio.type = 'radio';
-                    radio.name = `question${questionCounter}`;
-                    radio.value = option;
-                    label.appendChild(radio);
-                    label.append(` ${option}`);
-                    optionsDiv.appendChild(label);
-                });
-            }
-            questionBlock.appendChild(optionsDiv);
-            examForm.appendChild(questionBlock);
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'options';
+        
+        const choices = q.o ? q.o.map((opt, i) => ({ label: `${['A','B','C','D'][i]}) ${opt}`, value: ['A','B','C','D'][i] })) : [{label: 'True', value: 'True'}, {label: 'False', value: 'False'}];
+        
+        choices.forEach(choice => {
+            const label = document.createElement('label');
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = `question${index}`;
+            radio.value = choice.value;
+            label.appendChild(radio);
+            label.append(` ${choice.label}`);
+            optionsDiv.appendChild(label);
         });
+
+        questionBlock.appendChild(optionsDiv);
+        questionWrapper.appendChild(questionBlock);
+        examForm.appendChild(questionWrapper);
+
+        const navBtn = document.createElement('button');
+        navBtn.className = 'nav-btn';
+        navBtn.textContent = index + 1;
+        navBtn.dataset.index = index;
+        navigatorGrid.appendChild(navBtn);
+    });
+
+    function showQuestion(index) {
+        document.querySelectorAll('.question-wrapper').forEach(qw => qw.style.display = 'none');
+        document.getElementById(`question-wrapper-${index}`).style.display = 'block';
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.nav-btn[data-index='${index}']`).classList.add('active');
+        prevBtn.disabled = index === 0;
+        nextBtn.disabled = index === allQuestions.length - 1;
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < allQuestions.length - 1) {
+            currentQuestionIndex++;
+            showQuestion(currentQuestionIndex);
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            showQuestion(currentQuestionIndex);
+        }
+    });
+
+    navigatorGrid.addEventListener('click', (event) => {
+        if (event.target.classList.contains('nav-btn')) {
+            currentQuestionIndex = parseInt(event.target.dataset.index);
+            showQuestion(currentQuestionIndex);
+        }
     });
     
+    examForm.addEventListener('change', (event) => {
+        if (event.target.type === 'radio') {
+            const questionName = event.target.name;
+            const questionIndex = parseInt(questionName.replace('question', ''));
+            document.querySelector(`.nav-btn[data-index='${questionIndex}']`).classList.add('answered');
+        }
+    });
+    
+    showQuestion(0);
+
     let timeLeft = 3600;
     const timerElement = document.getElementById('time');
     const timerInterval = setInterval(() => {
@@ -147,24 +183,34 @@ function handleExamPage() {
     });
     document.addEventListener('copy', (e) => e.preventDefault());
     
-    document.getElementById('submit-exam').addEventListener('click', submitExam);
+    submitBtn.addEventListener('click', () => {
+        if (confirm("Are you sure you want to submit your exam?")) {
+            submitExam();
+        }
+    });
 
     function submitExam() {
-        document.getElementById('submit-exam').disabled = true;
+        submitBtn.disabled = true;
         clearInterval(timerInterval);
         
         let score = 0;
-        const totalQuestions = questionCounter;
-        const allQuestions = examData.parts.flatMap(p => p.questions);
+        const studentAnswers = [];
         
-        for (let i = 1; i <= totalQuestions; i++) {
-            const selectedOption = document.querySelector(`input[name="question${i}"]:checked`);
-            if (selectedOption) {
-                if (selectedOption.value.toLowerCase() === allQuestions[i - 1].a.toLowerCase()) {
-                    score++;
-                }
+        allQuestions.forEach((q, index) => {
+            const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
+            const studentAnswer = selectedOption ? selectedOption.value : "No Answer";
+            const isCorrect = studentAnswer.toLowerCase() === q.a.toLowerCase();
+            
+            if (isCorrect) {
+                score++;
             }
-        }
+            studentAnswers.push({
+                question: q.q,
+                studentAnswer: studentAnswer,
+                correctAnswer: q.a,
+                isCorrect: isCorrect
+            });
+        });
         
         const finalResults = {
             name: `${studentInfo.firstname} ${studentInfo.lastname}`,
@@ -173,7 +219,12 @@ function handleExamPage() {
             idNumber: studentInfo.id_number,
             examTitle: examData.title,
             score: score,
-            totalQuestions: totalQuestions
+            totalQuestions: allQuestions.length
+        };
+        
+        const submissionBody = {
+            studentData: finalResults,
+            answers: studentAnswers
         };
 
         fetch('https://csuaparr-final-online-exam.onrender.com/submit-exam', {
@@ -182,7 +233,7 @@ function handleExamPage() {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authToken}`
             },
-            body: JSON.stringify(finalResults)
+            body: JSON.stringify(submissionBody)
         })
         .then(response => {
             if (!response.ok) throw new Error('Submission failed. Server responded with an error.');
@@ -195,7 +246,7 @@ function handleExamPage() {
         })
         .catch((error) => {
             console.error('Error:', error);
-            alert('There was an error submitting your exam. Your token may have expired. Please log in again.');
+            alert('There was an error submitting your exam. Your token may have expired or there was a network issue. Please log in again.');
             window.location.href = 'index.html';
         });
     }
