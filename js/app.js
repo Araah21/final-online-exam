@@ -74,7 +74,8 @@ function handleExamPage() {
     document.getElementById('student-name').textContent = `${studentInfo.firstname} ${studentInfo.lastname}`;
     document.getElementById('student-id').textContent = studentInfo.id_number;
     // --- NEW: Apply the dynamic watermark ---
-    const studentNameForWatermark = `${studentInfo.firstname} <span class="math-inline">\{studentInfo\.lastname\}\\n</span>{studentInfo.id_number}`;
+    const studentNameForWatermark = `${studentInfo.firstname} ${studentInfo.lastname}\n${studentInfo.id_number}`;
+
     document.body.classList.add('exam-active');
     document.body.setAttribute('data-watermark', studentNameForWatermark);
 
