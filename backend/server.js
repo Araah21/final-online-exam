@@ -1,19 +1,17 @@
-// server.js - UPDATED FOR POSTGRESQL and RENDER
+// server.js - FINAL DEPLOYMENT VERSION
 const express = require('express');
 const cors = require('cors');
 const Papa = require('papaparse');
-const { Pool } = require('pg'); // <-- Import the pg Pool object
+const { Pool } = require('pg');
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Render will set the PORT environment variable
+const PORT = process.env.PORT || 3000;
 
-// --- Connect to the PostgreSQL database ---
-// Render will provide the DATABASE_URL environment variable.
-// The pool will use it automatically.
+// --- Connect to the PostgreSQL database from Render ---
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
-        rejectUnauthorized: false // Required for Render connections
+        rejectUnauthorized: false
     }
 });
 
@@ -41,15 +39,12 @@ const createTable = async () => {
 createTable();
 
 // --- Middleware ---
-
-// REPLACE THE OLD app.use(cors()); LINE WITH THIS BLOCK
 const corsOptions = {
-  origin: 'https://araah21.github.io', // This is your frontend's exact address
-  optionsSuccessStatus: 200 // For legacy browser support
+  origin: 'https://araah21.github.io', // Your frontend's exact address
+  optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
-
-app.use(express.json()); // This line should come after the cors configuration
+app.use(express.json());
 
 // --- Routes ---
 app.get('/', (req, res) => {
