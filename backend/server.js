@@ -1,24 +1,23 @@
-// server.js - Add this line at the very top
-
-require('dotenv').config(); // This loads variables from .env for local testing
-
-
-// server.js - FINAL VERSION WITH AUTHENTICATION (Syntax Corrected)
+// server.js - THE COMPLETE AND FINAL VERSION
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const Papa = require('papaparse');
 const { Pool } = require('pg');
-const jwt =require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
+const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY;
 
+// --- Database Connection ---
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
+// --- Create ALL tables if they don't exist on startup ---
 const createTables = async () => {
     const createResultsTableQuery = `
     CREATE TABLE IF NOT EXISTS results (
@@ -48,11 +47,12 @@ const createTables = async () => {
         await pool.query(createStudentsTableQuery);
         console.log("Table 'students' is ready.");
     } catch (err) {
-        console.error("Error creating tables", err);
+        console.error("Error creating tables on startup:", err);
     }
 };
 createTables();
 
+// --- Middleware ---
 const corsOptions = {
   origin: 'https://araah21.github.io',
   optionsSuccessStatus: 200
@@ -60,6 +60,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// --- Authentication Middleware ---
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -71,8 +72,8 @@ function authenticateToken(req, res, next) {
     });
 }
 
+// --- General & Login Routes ---
 app.get('/', (req, res) => res.redirect('/admin'));
-app.get('/admin', (req, res) => res.sendFile(__dirname + '/admin.html'));
 
 app.post('/login', async (req, res) => {
     const { lastname, idNumber } = req.body;
@@ -82,6 +83,7 @@ app.post('/login', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM students WHERE id_number = $1', [idNumber]);
         const student = result.rows[0];
+
         if (student && student.lastname.toLowerCase() === lastname.toLowerCase()) {
             if (student.exam_taken_at) {
                 return res.status(403).json({ message: "You have already completed the exam and cannot log in again." });
@@ -98,6 +100,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// --- Exam Submission Route ---
 app.post('/submit-exam', authenticateToken, async (req, res) => {
     const studentData = req.body;
     const studentIdNumber = req.user.idNumber;
@@ -131,25 +134,14 @@ app.post('/submit-exam', authenticateToken, async (req, res) => {
     }
 });
 
-app.get('/download-results', async (req, res) => {
-    const sql = `SELECT id, name, course, section, idNumber, examTitle, score, totalQuestions, submissionTime FROM results ORDER BY submissionTime DESC`;
-    try {
-        const { rows } = await pool.query(sql);
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', 'attachment; filename="exam_results.csv"');
-        res.status(200).send(Papa.unparse(rows));
-    } catch (err) {
-        console.error("Database read error for download", err);
-        res.status(500).send("Failed to retrieve data from the database.");
-    }
+// --- Admin Routes ---
+app.get('/admin', (req, res) => {
+    res.sendFile(__dirname + '/admin.html');
 });
 
-// --- START: NEW AND UPDATED ADMIN ROUTES ---
-
-// NEW: API endpoint to get results as JSON for the table
 app.get('/api/results', async (req, res) => {
     try {
-        const { rows } = await pool.query('SELECT id, name, idNumber, examTitle, score, totalQuestions, submissionTime FROM results ORDER BY submissionTime DESC');
+        const { rows } = await pool.query('SELECT id, name, idnumber, examtitle, score, totalquestions, submissiontime FROM results ORDER BY submissiontime DESC');
         res.json(rows);
     } catch (err) {
         console.error("API Error fetching results:", err);
@@ -157,7 +149,6 @@ app.get('/api/results', async (req, res) => {
     }
 });
 
-// NEW: API endpoint to delete a single result
 app.delete('/api/results/:id', async (req, res) => {
     const { id } = req.params;
     const { adminKey } = req.body;
@@ -175,7 +166,6 @@ app.delete('/api/results/:id', async (req, res) => {
     }
 });
 
-// NEW: API endpoint to delete all results
 app.delete('/api/results/all', async (req, res) => {
     const { adminKey } = req.body;
 
@@ -184,7 +174,7 @@ app.delete('/api/results/all', async (req, res) => {
     }
 
     try {
-        await pool.query('TRUNCATE TABLE results'); // TRUNCATE is faster than DELETE for clearing a whole table
+        await pool.query('TRUNCATE TABLE results RESTART IDENTITY');
         res.status(200).json({ message: "All results have been cleared successfully." });
     } catch (err) {
         console.error("API Error clearing results table:", err);
@@ -192,26 +182,17 @@ app.delete('/api/results/all', async (req, res) => {
     }
 });
 
-
-// This route for the admin page itself remains the same
-app.get('/admin', (req, res) => {
-    res.sendFile(__dirname + '/admin.html');
-});
-
-// This route for downloading also remains the same
 app.get('/download-results', async (req, res) => {
-    // ... download logic remains the same ...
-    const sql = `SELECT id, name, course, section, idNumber, examTitle, score, totalQuestions, submissionTime FROM results ORDER BY submissionTime DESC`;
     try {
-        const { rows } = await pool.query(sql);
+        const { rows } = await pool.query('SELECT id, name, course, section, idNumber, examTitle, score, totalQuestions, submissionTime FROM results ORDER BY submissionTime DESC');
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename="exam_results.csv"');
         res.status(200).send(Papa.unparse(rows));
     } catch (err) {
+        console.error("Database read error for download:", err);
         res.status(500).send("Failed to retrieve data from the database.");
     }
 });
 
-// --- END: NEW AND UPDATED ADMIN ROUTES ---
-
+// --- Start the Server ---
 app.listen(PORT, () => console.log(`Backend server is running on port ${PORT}`));
