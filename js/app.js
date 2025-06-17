@@ -136,6 +136,7 @@ function handleExamPage() {
 
     // This is the NEW submitExam function in js/app.js
 function submitExam() {
+    document.getElementById('submit-exam').disabled = true;
     clearInterval(timerInterval); // Stop the timer
 
     let score = 0;
@@ -151,15 +152,15 @@ function submitExam() {
         }
     }
     
-    // Get all student and result data into one object
     const finalResults = {
-        name: studentInfo.name,
-        course: studentInfo.course,
-        section: studentInfo.section,
-        idNumber: studentInfo.idNumber,
-        examTitle: examData.title,
-        score: score,
-        totalQuestions: totalQuestions
+    name: `${studentInfo.firstname} ${studentInfo.lastname}`, // From login
+    course: studentInfo.course,                             // From login
+    section: studentInfo.section,                           // From login
+    idNumber: studentInfo.id_number,                        // From login
+    examTitle: examData.title,
+    score: score,
+    totalQuestions: totalQuestions
+
     };
 
     // Use fetch() to send the data to your server
