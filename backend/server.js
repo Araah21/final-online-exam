@@ -1,4 +1,4 @@
-// server.js - THE COMPLETE AND FINAL VERSION
+// server.js - FINAL VERSION WITH "ALLOW RETAKE" FEATURE
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -11,48 +11,11 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY;
 
-// --- Database Connection ---
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
-// --- Create ALL tables if they don't exist on startup ---
-const createTables = async () => {
-    const createResultsTableQuery = `
-    CREATE TABLE IF NOT EXISTS results (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        course TEXT,
-        section TEXT,
-        idNumber TEXT NOT NULL,
-        examTitle TEXT NOT NULL,
-        score INTEGER NOT NULL,
-        totalQuestions INTEGER NOT NULL,
-        submissionTime TIMESTAMPTZ DEFAULT NOW()
-    );`;
-    const createStudentsTableQuery = `
-    CREATE TABLE IF NOT EXISTS students (
-        id SERIAL PRIMARY KEY,
-        id_number VARCHAR(50) UNIQUE NOT NULL,
-        lastname VARCHAR(100) NOT NULL,
-        firstname VARCHAR(100) NOT NULL,
-        course VARCHAR(100),
-        section VARCHAR(50),
-        exam_taken_at TIMESTAMPTZ NULL
-    );`;
-    try {
-        await pool.query(createResultsTableQuery);
-        console.log("Table 'results' is ready.");
-        await pool.query(createStudentsTableQuery);
-        console.log("Table 'students' is ready.");
-    } catch (err) {
-        console.error("Error creating tables on startup:", err);
-    }
-};
-createTables();
-
-// --- Middleware ---
 const corsOptions = {
   origin: 'https://araah21.github.io',
   optionsSuccessStatus: 200
@@ -60,7 +23,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// --- Authentication Middleware ---
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -139,6 +101,35 @@ app.get('/admin', (req, res) => {
     res.sendFile(__dirname + '/admin.html');
 });
 
+// --- NEW --- API endpoint to get the full student roster
+app.get('/api/students', async (req, res) => {
+    try {
+        const { rows } = await pool.query('SELECT id, firstname, lastname, id_number, exam_taken_at FROM students ORDER BY lastname, firstname');
+        res.json(rows);
+    } catch (err) {
+        console.error("API Error fetching students:", err);
+        res.status(500).json({ message: "Failed to fetch student list." });
+    }
+});
+
+// --- NEW --- API endpoint to reset a student's exam status
+app.put('/api/students/:id/reset', async (req, res) => {
+    const { id } = req.params;
+    const { adminKey } = req.body;
+
+    if (adminKey !== ADMIN_SECRET_KEY) {
+        return res.status(401).json({ message: "Unauthorized: Invalid Admin Key." });
+    }
+
+    try {
+        await pool.query('UPDATE students SET exam_taken_at = NULL WHERE id = $1', [id]);
+        res.status(200).json({ message: `Student ID #${id} has been reset and can now retake the exam.` });
+    } catch (err) {
+        console.error(`API Error resetting student ${id}:`, err);
+        res.status(500).json({ message: "Failed to reset student status." });
+    }
+});
+
 app.get('/api/results', async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT id, name, idnumber, examtitle, score, totalquestions, submissiontime FROM results ORDER BY submissiontime DESC');
@@ -149,14 +140,11 @@ app.get('/api/results', async (req, res) => {
     }
 });
 
-// CORRECTED ORDER: The more specific '/all' route now comes first.
 app.delete('/api/results/all', async (req, res) => {
     const { adminKey } = req.body;
-
     if (adminKey !== ADMIN_SECRET_KEY) {
         return res.status(401).json({ message: "Unauthorized: Invalid Admin Key." });
     }
-
     try {
         await pool.query('TRUNCATE TABLE results RESTART IDENTITY');
         res.status(200).json({ message: "All results have been cleared successfully." });
@@ -166,15 +154,12 @@ app.delete('/api/results/all', async (req, res) => {
     }
 });
 
-// CORRECTED ORDER: The general '/:id' route now comes second.
 app.delete('/api/results/:id', async (req, res) => {
     const { id } = req.params;
     const { adminKey } = req.body;
-
     if (adminKey !== ADMIN_SECRET_KEY) {
         return res.status(401).json({ message: "Unauthorized: Invalid Admin Key." });
     }
-
     try {
         await pool.query('DELETE FROM results WHERE id = $1', [id]);
         res.status(200).json({ message: `Result with ID ${id} deleted successfully.` });
@@ -182,10 +167,6 @@ app.delete('/api/results/:id', async (req, res) => {
         console.error(`API Error deleting result ${id}:`, err);
         res.status(500).json({ message: "Failed to delete result." });
     }
-});
-
-app.get('/download-results', async (req, res) => {
-    // ... download logic ...
 });
 
 app.get('/download-results', async (req, res) => {
@@ -200,5 +181,4 @@ app.get('/download-results', async (req, res) => {
     }
 });
 
-// --- Start the Server ---
 app.listen(PORT, () => console.log(`Backend server is running on port ${PORT}`));
