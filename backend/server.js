@@ -1,3 +1,12 @@
+// server.js - Add this line at the very top
+
+require('dotenv').config(); // This loads variables from .env for local testing
+
+// server.js - FINAL VERSION WITH DATABASE-POWERED AUTHENTICATION
+const express = require('express');
+const cors = require('cors');
+// ... rest of the file
+
 // server.js - FINAL VERSION WITH AUTHENTICATION (Syntax Corrected)
 const express = require('express');
 const cors = require('cors');
