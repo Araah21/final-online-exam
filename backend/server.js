@@ -1,9 +1,9 @@
-// server.js - FINAL VERSION WITH DATABASE-POWERED AUTHENTICATION
+// server.js - FINAL VERSION WITH AUTHENTICATION (Syntax Corrected)
 const express = require('express');
 const cors = require('cors');
 const Papa = require('papaparse');
 const { Pool } = require('pg');
-const jwt = require('jsonwebtoken');
+const jwt =require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,6 +13,40 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
+
+const createTables = async () => {
+    const createResultsTableQuery = `
+    CREATE TABLE IF NOT EXISTS results (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        course TEXT,
+        section TEXT,
+        idNumber TEXT NOT NULL,
+        examTitle TEXT NOT NULL,
+        score INTEGER NOT NULL,
+        totalQuestions INTEGER NOT NULL,
+        submissionTime TIMESTAMPTZ DEFAULT NOW()
+    );`;
+    const createStudentsTableQuery = `
+    CREATE TABLE IF NOT EXISTS students (
+        id SERIAL PRIMARY KEY,
+        id_number VARCHAR(50) UNIQUE NOT NULL,
+        lastname VARCHAR(100) NOT NULL,
+        firstname VARCHAR(100) NOT NULL,
+        course VARCHAR(100),
+        section VARCHAR(50),
+        exam_taken_at TIMESTAMPTZ NULL
+    );`;
+    try {
+        await pool.query(createResultsTableQuery);
+        console.log("Table 'results' is ready.");
+        await pool.query(createStudentsTableQuery);
+        console.log("Table 'students' is ready.");
+    } catch (err) {
+        console.error("Error creating tables", err);
+    }
+};
+createTables();
 
 const corsOptions = {
   origin: 'https://araah21.github.io',
@@ -40,17 +74,13 @@ app.post('/login', async (req, res) => {
     if (!lastname || !idNumber) {
         return res.status(400).json({ message: "Lastname and ID Number are required." });
     }
-
     try {
         const result = await pool.query('SELECT * FROM students WHERE id_number = $1', [idNumber]);
         const student = result.rows[0];
-
         if (student && student.lastname.toLowerCase() === lastname.toLowerCase()) {
-            // Check if exam was already taken
             if (student.exam_taken_at) {
                 return res.status(403).json({ message: "You have already completed the exam and cannot log in again." });
             }
-
             const userPayload = { idNumber: student.id_number, name: `${student.firstname} ${student.lastname}` };
             const accessToken = jwt.sign(userPayload, JWT_SECRET, { expiresIn: '3h' });
             res.json({ accessToken: accessToken, studentDetails: student });
@@ -65,14 +95,12 @@ app.post('/login', async (req, res) => {
 
 app.post('/submit-exam', authenticateToken, async (req, res) => {
     const studentData = req.body;
-    const studentIdNumber = req.user.idNumber; // Get ID from the verified JWT
+    const studentIdNumber = req.user.idNumber;
     console.log(`Received submission from authenticated user: ${req.user.name} (${studentIdNumber})`);
     
-    // Use a transaction to ensure both operations succeed or fail together
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        // 1. Insert the exam result
         const insertResultQuery = `INSERT INTO results (name, course, section, idNumber, examTitle, score, totalQuestions)
                                    VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`;
         const resultParams = [
@@ -83,7 +111,6 @@ app.post('/submit-exam', authenticateToken, async (req, res) => {
         const result = await client.query(insertResultQuery, resultParams);
         console.log(`Saved submission with ID: ${result.rows[0].id}`);
 
-        // 2. Mark the student as having taken the exam
         const updateStudentQuery = 'UPDATE students SET exam_taken_at = NOW() WHERE id_number = $1';
         await client.query(updateStudentQuery, [studentIdNumber]);
         console.log(`Marked student ${studentIdNumber} as completed.`);
@@ -107,6 +134,7 @@ app.get('/download-results', async (req, res) => {
         res.setHeader('Content-Disposition', 'attachment; filename="exam_results.csv"');
         res.status(200).send(Papa.unparse(rows));
     } catch (err) {
+        console.error("Database read error for download", err);
         res.status(500).send("Failed to retrieve data from the database.");
     }
 });
