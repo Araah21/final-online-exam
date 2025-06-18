@@ -83,10 +83,7 @@ const createTables = async () => {
 createTables();
 
 // --- Middleware ---
-const corsOptions = {
-  origin: 'https://araah21.github.io',
-  optionsSuccessStatus: 200
-};
+const corsOptions = { origin: 'https://araah21.github.io', optionsSuccessStatus: 200 };
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -97,6 +94,24 @@ function authenticateToken(req, res, next) {
     if (token == null) return res.sendStatus(401);
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) return res.sendStatus(403);
+        req.user = user;
+        next();
+    });
+}
+
+function authenticateAdmin(req, res, next) {
+    // This function runs on every secure admin route.
+    // It looks for the token. If it doesn't exist or is invalid,
+    // it redirects to the login page.
+    const token = req.headers.cookie?.split('; ').find(row => row.startsWith('adminAuthToken='))?.split('=')[1];
+
+    if (token == null) {
+        return res.redirect('/admin/login');
+    }
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err || user.role !== 'admin') {
+            return res.redirect('/admin/login');
+        }
         req.user = user;
         next();
     });
