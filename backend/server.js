@@ -93,24 +93,19 @@ app.use(express.json());
 app.use(cookieParser());
 
 // --- Authentication Middleware ---
-function authenticateAdmin(req, res, next) {
-    // This function now reliably reads from req.cookies because of the new middleware
-    const token = req.cookies.adminAuthToken;
-
-    if (token == null) {
-        // If no token cookie, redirect to the login page
-        return res.redirect('/admin/login');
-    }
+function authenticateToken(req, res, next) {
+    // This is the authentication for STUDENTS
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token == null) return res.sendStatus(401); // If no token, reject the request
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err || user.role !== 'admin') {
-            // If token is invalid or not an admin, also redirect
-            return res.redirect('/admin/login');
-        }
+        if (err) return res.sendStatus(403); // If token is invalid, reject
         req.user = user;
-        next(); // Token is valid, proceed to the requested page
+        next(); // Token is valid, proceed
     });
 }
+
 
 function authenticateAdmin(req, res, next) {
     const token = req.cookies.adminAuthToken;
