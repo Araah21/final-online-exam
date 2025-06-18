@@ -2,49 +2,143 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Admin Dashboard</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <title>Exam Admin Dashboard</title>
     <style>
-        :root {
-            --primary-color: #007bff;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --info-color: #17a2b8;
-            --light-gray: #f8f9fa;
-            --medium-gray: #dee2e6;
-            --dark-gray: #343a40;
-            --white: #fff;
-        }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; background-color: var(--light-gray); color: #212529; margin: 0; padding: 20px; }
-        .container { max-width: 1400px; margin: auto; }
-        h1, h2, h3 { color: var(--dark-gray); }
-        h1 { border-bottom: 2px solid var(--primary-color); padding-bottom: 15px; margin-bottom: 20px; }
-        .card-deck { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card { background: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); text-align: center; }
-        .card h3 { margin-top: 0; font-size: 1.2rem; color: #6c757d; }
-        .card .stat { font-size: 2.5rem; font-weight: bold; color: var(--primary-color); }
-        .tabs { display: flex; border-bottom: 1px solid var(--medium-gray); margin-bottom: 20px; }
-        .tab-button { background: none; border: none; padding: 10px 20px; font-size: 1rem; cursor: pointer; border-bottom: 3px solid transparent; }
-        .tab-button.active { border-bottom-color: var(--primary-color); font-weight: bold; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .table-container { background: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .controls { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .search-box { padding: 10px; font-size: 14px; border: 1px solid var(--medium-gray); border-radius: 5px; width: 250px; }
-        .btn { padding: 10px 15px; font-size: 14px; cursor: pointer; text-decoration: none; color: var(--white); border: none; border-radius: 5px; transition: all 0.2s ease; }
-        .btn:active { transform: translateY(1px); }
-        .btn-download { background-color: var(--success-color); }
-        .btn-clear { background-color: var(--danger-color); }
-        .btn-delete { background-color: var(--warning-color); color: #212529; font-size: 12px; }
-        .btn-retake { background-color: var(--info-color); font-size: 12px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border: 1px solid var(--medium-gray); text-align: left; }
-        th { background-color: var(--light-gray); }
-        .pagination { margin-top: 15px; text-align: center; }
-        .pagination button { margin: 0 5px; }
-        .status-completed { color: var(--success-color); font-weight: bold; }
-        .status-not-taken { color: #6c757d; }
-        .loader { text-align: center; padding: 40px; font-size: 1.2rem; color: #6c757d; }
+          :root {
+        --primary-color: #0056b3;
+        --success-color: #218838;
+        --danger-color: #c82333;
+        --warning-color: #e0a800;
+        --info-color: #138496;
+        --light-gray: #f8f9fa;
+        --medium-gray: #dee2e6;
+        --dark-gray: #343a40;
+        --white: #fff;
+    }
+    body {
+        font-family: 'Poppins', sans-serif;
+        line-height: 1.7;
+        background-color: var(--light-gray);
+        color: #212529;
+        margin: 0;
+        padding: 20px;
+        font-size: 16px;
+    }
+    .container {
+        max-width: 1400px;
+        margin: auto;
+    }
+    h1, h2 {
+        color: var(--dark-gray);
+        border-bottom: 1px solid var(--medium-gray);
+        padding-bottom: 10px;
+        font-weight: 600;
+    }
+    h1 {
+         font-size: 2rem;
+         border-bottom-width: 2px;
+         border-bottom-color: var(--primary-color);
+         margin-bottom: 20px;
+    }
+    h2 { font-size: 1.5rem; }
+    .card-deck {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .card {
+        background: var(--white);
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        text-align: center;
+    }
+    .card h3 {
+        margin-top: 0;
+        font-size: 1.1rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    .card .stat {
+        font-size: 2.75rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+    .tabs {
+        display: flex;
+        border-bottom: 1px solid var(--medium-gray);
+        margin-bottom: 20px;
+    }
+    .tab-button {
+        background: none;
+        border: none;
+        padding: 12px 25px;
+        font-size: 1.1rem;
+        font-family: 'Poppins', sans-serif;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        font-weight: 500;
+    }
+    .tab-button.active {
+        border-bottom-color: var(--primary-color);
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .table-container {
+        background: var(--white);
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .table-wrapper { overflow-x: auto; }
+    .controls { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .search-box {
+        padding: 12px;
+        font-size: 1rem;
+        font-family: 'Poppins', sans-serif;
+        border: 1px solid var(--medium-gray);
+        border-radius: 5px;
+        width: 300px;
+    }
+    .btn { padding: 12px 20px; font-size: 1rem; cursor: pointer; text-decoration: none; color: var(--white); border: none; border-radius: 5px; transition: all 0.2s ease; font-family: 'Poppins', sans-serif; font-weight: 500; }
+    .btn:active { transform: translateY(1px); }
+    .btn-download { background-color: var(--success-color); }
+    .btn-clear { background-color: var(--danger-color); }
+    .btn-delete { background-color: var(--warning-color); color: #212529; font-size: 0.9rem; }
+    .btn-retake { background-color: var(--info-color); font-size: 0.9rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 1rem; }
+    th, td { padding: 14px; border: 1px solid var(--medium-gray); text-align: left; white-space: nowrap; }
+    th { background-color: var(--light-gray); font-weight: 600; }
+    .pagination { margin-top: 20px; text-align: center; }
+    .pagination button { margin: 0 5px; }
+    .status-completed { color: var(--success-color); font-weight: 600; }
+    .status-not-taken { color: #6c757d; }
+    .loader { text-align: center; padding: 40px; font-size: 1.2rem; color: #6c757d; }
+
+    @media (max-width: 768px) {
+        body { padding: 10px; }
+        h1 { font-size: 1.6rem; }
+        h2 { font-size: 1.3rem; }
+        .card-deck { grid-template-columns: 1fr; }
+        .tabs { flex-wrap: wrap; }
+        .tab-button { flex-grow: 1; font-size: 1rem; padding: 10px; }
+        .table-container { padding: 15px; }
+        .controls { flex-direction: column; align-items: stretch; }
+        .search-box { width: 100%; box-sizing: border-box; }
+        th, td { padding: 10px; }
+    }
     </style>
 </head>
 <body>
