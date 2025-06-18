@@ -116,6 +116,68 @@ function handleExamPage() {
         navigatorGrid.appendChild(navBtn);
     });
 
+// --- NEW: Load saved progress when page starts ---
+    async function loadProgress() {
+        console.log("Checking for saved progress...");
+        try {
+            const response = await fetch('https://csuaparr-final-online-exam.onrender.com/api/progress', {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            if (!response.ok) return;
+            const savedAnswers = await response.json();
+            if (savedAnswers) {
+                console.log("Saved progress found. Repopulating answers.");
+                Object.entries(savedAnswers).forEach(([questionIndex, answerValue]) => {
+                    const radio = document.querySelector(`input[name="question${questionIndex}"][value="${answerValue}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                        document.querySelector(`.nav-btn[data-index='${questionIndex}']`).classList.add('answered');
+                    }
+                });
+            }
+        } catch (error) {
+            console.error("Could not load progress:", error);
+        }
+    }
+
+    // --- NEW: Auto-save progress periodically ---
+    function saveProgress() {
+        const currentAnswers = {};
+        allQuestions.forEach((q, index) => {
+            const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
+            if (selectedOption) {
+                currentAnswers[index] = selectedOption.value;
+            }
+        });
+
+        // Send to server without blocking user
+        navigator.sendBeacon('https://csuaparr-final-online-exam.onrender.com/api/progress', JSON.stringify({
+            examType,
+            answers: currentAnswers
+        }));
+        // Note: Using sendBeacon is more reliable for background tasks than fetch.
+        // We need to adjust the backend to get the token differently or make the endpoint public for this specific use case if needed.
+        // For now, let's stick with fetch for simplicity in this example.
+        fetch('https://csuaparr-final-online-exam.onrender.com/api/progress', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ examType, answers: currentAnswers }),
+            keepalive: true // Helps ensure request completes if page is closed
+        }).then(res => {
+            if(res.ok) console.log("Progress saved at", new Date().toLocaleTimeString());
+        });
+    }
+
+    // --- Initial Setup ---
+    showQuestion(0);
+    loadProgress().then(() => {
+        // Start auto-save AFTER loading progress to avoid race conditions
+        autoSaveInterval = setInterval(saveProgress, 60000); // Save every 60 seconds
+    });
+
     function showQuestion(index) {
         document.querySelectorAll('.question-wrapper').forEach(qw => qw.style.display = 'none');
         document.getElementById(`question-wrapper-${index}`).style.display = 'block';
