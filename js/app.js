@@ -237,7 +237,11 @@ function handleExamPage() {
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
             tabSwitchCount++;
-            if (tabSwitchCount >= 3) {
+            if (tabSwitchCount === 1) {
+                alert('Warning: Switching tabs is not allowed. This is your first warning.');
+            } else if (tabSwitchCount === 2) {
+                alert('Warning: You have switched tabs again. One more time and the exam will be submitted automatically.');
+            } else if (tabSwitchCount >= 3) {
                 alert('You have switched tabs three times. Your exam will now be submitted.');
                 submitExam();
             }
