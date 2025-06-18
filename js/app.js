@@ -233,20 +233,33 @@ function handleExamPage() {
         }
     }, 1000);
 
+    // --- Security Features ---
     let tabSwitchCount = 0;
+    const maxSwitches = 3;
+
     document.addEventListener('visibilitychange', () => {
+        // This event fires both when the user leaves and when they return.
+
         if (document.hidden) {
+            // The user has switched AWAY from the tab.
+            // We just silently increment the counter. We don't show an alert here.
             tabSwitchCount++;
-            if (tabSwitchCount === 1) {
-                alert('Warning: Switching tabs is not allowed. This is your first warning.');
-            } else if (tabSwitchCount === 2) {
-                alert('Warning: You have switched tabs again. One more time and the exam will be submitted automatically.');
-            } else if (tabSwitchCount >= 3) {
-                alert('You have switched tabs three times. Your exam will now be submitted.');
+        } else {
+            // The user has RETURNED to the tab.
+            // NOW we check the count and show a warning if necessary.
+            if (tabSwitchCount >= maxSwitches) {
+                // The user has returned after the final allowed switch.
+                // Show the final alert and then submit.
+                alert(`You have switched tabs ${maxSwitches} or more times. The exam will now be submitted automatically.`);
                 submitExam();
+            } else if (tabSwitchCount > 0) {
+                // Show a warning for the first and second switches upon returning.
+                const remaining = maxSwitches - tabSwitchCount;
+                alert(`Warning: You have switched away from the exam tab ${tabSwitchCount} time(s).\n\nSwitching away ${remaining} more time(s) will result in automatic submission.`);
             }
         }
     });
+
     document.addEventListener('copy', (e) => e.preventDefault());
     
     submitBtn.addEventListener('click', () => {
