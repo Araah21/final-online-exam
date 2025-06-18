@@ -51,6 +51,20 @@ const createTables = async () => {
         is_correct BOOLEAN NOT NULL
     );`;
 
+    const createTeachersTableQuery = `
+    CREATE TABLE IF NOT EXISTS teachers (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(100) UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL
+    );`;
+
+    const createProgressTableQuery = `
+    CREATE TABLE IF NOT EXISTS saved_progress (
+        student_id_number VARCHAR(50) PRIMARY KEY,
+        exam_type VARCHAR(10) NOT NULL,
+        answers_json TEXT
+    );`;
+
     try {
         await pool.query(createResultsTableQuery);
         console.log("Table 'results' is ready.");
@@ -58,6 +72,10 @@ const createTables = async () => {
         console.log("Table 'students' is ready.");
         await pool.query(createAnswersTableQuery);
         console.log("Table 'student_answers' is ready.");
+        await pool.query(createTeachersTableQuery);
+        console.log("Table 'teachers' is ready."); 
+        await pool.query(createProgressTableQuery);
+        console.log("Table 'saved_progress' is ready.");
     } catch (err) {
         console.error("Error creating tables on startup:", err);
     }
@@ -111,6 +129,56 @@ app.post('/login', async (req, res) => {
         res.status(500).json({ message: "A server error occurred during login." });
     }
 });
+
+// --- NEW AUTO-SAVE ROUTES (for students) ---
+app.get('/api/progress', authenticateToken, async (req, res) => {
+    const studentIdNumber = req.user.idNumber;
+    try {
+        const result = await pool.query('SELECT answers_json FROM saved_progress WHERE student_id_number = $1', [studentIdNumber]);
+        if (result.rows.length > 0) {
+            res.json(JSON.parse(result.rows[0].answers_json));
+        } else {
+            res.json(null); // No saved progress
+        }
+    } catch (err) {
+        res.status(500).json({ message: 'Could not retrieve progress.' });
+    }
+});
+app.post('/api/progress', authenticateToken, async (req, res) => {
+    const studentIdNumber = req.user.idNumber;
+    const { examType, answers } = req.body;
+    const answersJson = JSON.stringify(answers);
+    const query = `
+        INSERT INTO saved_progress (student_id_number, exam_type, answers_json)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (student_id_number) DO UPDATE SET answers_json = $3;
+    `;
+    try {
+        await pool.query(query, [studentIdNumber, examType, answersJson]);
+        res.sendStatus(200);
+    } catch (err) {
+        res.sendStatus(500);
+    }
+});
+
+// --- ADMIN ROUTES (Now Secured) ---
+app.get('/admin/login', (req, res) => res.sendFile(__dirname + '/admin-login.html'));
+app.post('/api/admin/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const result = await pool.query('SELECT * FROM teachers WHERE username = $1', [username]);
+        const teacher = result.rows[0];
+        if (teacher && await bcrypt.compare(password, teacher.password_hash)) {
+            const accessToken = jwt.sign({ username: teacher.username, role: 'admin' }, JWT_SECRET, { expiresIn: '8h' });
+            res.json({ accessToken });
+        } else {
+            res.status(401).json({ message: "Invalid username or password" });
+        }
+    } catch (err) {
+        res.status(500).json({ message: "Server error during admin login." });
+    }
+});
+
 
 // --- Exam Submission Route ---
 app.post('/submit-exam', authenticateToken, async (req, res) => {
