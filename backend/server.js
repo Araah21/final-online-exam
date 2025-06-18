@@ -7,6 +7,7 @@ const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -89,16 +90,25 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
 
 // --- Authentication Middleware ---
-function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (token == null) return res.sendStatus(401);
+function authenticateAdmin(req, res, next) {
+    // This function now reliably reads from req.cookies because of the new middleware
+    const token = req.cookies.adminAuthToken;
+
+    if (token == null) {
+        // If no token cookie, redirect to the login page
+        return res.redirect('/admin/login');
+    }
+
     jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403);
+        if (err || user.role !== 'admin') {
+            // If token is invalid or not an admin, also redirect
+            return res.redirect('/admin/login');
+        }
         req.user = user;
-        next();
+        next(); // Token is valid, proceed to the requested page
     });
 }
 
