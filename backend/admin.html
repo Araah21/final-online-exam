@@ -306,7 +306,7 @@
         }
         
         // The action button is only needed if the exam has been started or completed
-        const actionButton = (student.exam_started_at) 
+        const actionButton = (student.exam_started_at || student.exam_taken_at) 
             ? `<button class="btn btn-retake" data-id="${student.id}">Allow Retake</button>` 
             : 'N/A';
 
