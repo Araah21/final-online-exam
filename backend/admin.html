@@ -112,6 +112,7 @@
         border-radius: 5px;
         width: 300px;
     }
+    .status-in-progress { color: var(--warning-color); font-weight: 600; }
     .btn { padding: 12px 20px; font-size: 1rem; cursor: pointer; text-decoration: none; color: var(--white); border: none; border-radius: 5px; transition: all 0.2s ease; font-family: 'Poppins', sans-serif; font-weight: 500; }
     .btn:active { transform: translateY(1px); }
     .btn-download { background-color: var(--success-color); }
@@ -286,16 +287,40 @@
             }
         }
 
-        function renderStudentsTable(filteredStudents, page = 1) {
-             const renderStudentRow = (student) => {
-                const row = document.createElement('tr');
-                const status = student.exam_taken_at ? `<span class="status-completed">Completed</span>` : `<span class="status-not-taken">Not Taken</span>`;
-                const actionButton = student.exam_taken_at ? `<button class="btn btn-retake" data-id="${student.id}">Allow Retake</button>` : 'N/A';
-                row.innerHTML = `<td>${student.firstname} ${student.lastname}</td><td>${student.id_number}</td><td>${status}</td><td>${actionButton}</td>`;
-                return row;
-            };
-            renderTable('students', filteredStudents, renderStudentRow, page);
+       function renderStudentsTable(filteredStudents, page = 1) {
+    const renderStudentRow = (student) => {
+        const row = document.createElement('tr');
+        
+        let status;
+        let statusClass;
+        
+        if (student.exam_taken_at) {
+            status = 'Completed';
+            statusClass = 'status-completed';
+        } else if (student.exam_started_at) {
+            status = 'In Progress';
+            statusClass = 'status-in-progress'; // You can add CSS for this, e.g., a warning color
+        } else {
+            status = 'Not Taken';
+            statusClass = 'status-not-taken';
         }
+        
+        // The action button is only needed if the exam has been started or completed
+        const actionButton = (student.exam_started_at) 
+            ? `<button class="btn btn-retake" data-id="${student.id}">Allow Retake</button>` 
+            : 'N/A';
+
+        row.innerHTML = `<td>${student.firstname} ${student.lastname}</td><td>${student.id_number}</td><td><span class="${statusClass}">${status}</span></td><td>${actionButton}</td>`;
+        return row;
+    };
+    renderTable('students', filteredStudents, renderStudentRow, page);
+}
+
+// OPTIONAL: To make the "In Progress" status stand out, add this CSS rule to admin.html
+// Inside the <style> tag in admin.html, add this:
+/*
+.status-in-progress { color: var(--warning-color); font-weight: 600; }
+*/
         
         function renderResultsTable(page = 1) {
             const renderResultRow = (result) => {

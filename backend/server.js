@@ -37,7 +37,7 @@ const createTables = async () => {
             );`);
         console.log("Table 'results' is ready.");
 
-        await pool.query(`
+         await pool.query(`
             CREATE TABLE IF NOT EXISTS students (
                 id SERIAL PRIMARY KEY,
                 id_number VARCHAR(50) UNIQUE NOT NULL,
@@ -45,6 +45,7 @@ const createTables = async () => {
                 firstname VARCHAR(100) NOT NULL,
                 course VARCHAR(100),
                 section VARCHAR(50),
+                exam_started_at TIMESTAMPTZ NULL, -- ADD THIS LINE
                 exam_taken_at TIMESTAMPTZ NULL
             );`);
         console.log("Table 'students' is ready.");
@@ -130,12 +131,22 @@ app.post('/login', async (req, res) => {
         const student = result.rows[0];
 
         if (student && student.lastname.toLowerCase() === lastname.toLowerCase()) {
+            // Check 1: Has the exam already been completed?
             if (student.exam_taken_at) {
                 return res.status(403).json({ message: "You have already completed the exam and cannot log in again." });
             }
+
+            // Check 2: Has the exam been started before? If not, mark it as started now.
+            // This is the key logic to prevent a fresh retake.
+            if (!student.exam_started_at) {
+                await pool.query('UPDATE students SET exam_started_at = NOW() WHERE id_number = $1', [idNumber]);
+            }
+            
+            // If the checks pass, issue the token to allow the student to start or resume.
             const userPayload = { idNumber: student.id_number, name: `${student.firstname} ${student.lastname}` };
             const accessToken = jwt.sign(userPayload, JWT_SECRET, { expiresIn: '3h' });
             res.json({ accessToken: accessToken, studentDetails: student });
+
         } else {
             res.status(401).json({ message: "Invalid credentials. Please check your Lastname and ID Number." });
         }
@@ -223,7 +234,8 @@ app.get('/', (req, res) => res.redirect('/admin'));
 app.get('/admin', authenticateAdmin, (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
 app.get('/api/students', authenticateAdmin, async (req, res) => {
-    const { rows } = await pool.query('SELECT id, firstname, lastname, id_number, exam_taken_at FROM students ORDER BY lastname, firstname');
+    // Select the new column so the frontend can use it
+    const { rows } = await pool.query('SELECT id, firstname, lastname, id_number, exam_started_at, exam_taken_at FROM students ORDER BY lastname, firstname');
     res.json(rows);
 });
 
@@ -231,10 +243,10 @@ app.put('/api/students/:id/reset', authenticateAdmin, async (req, res) => {
     const { id } = req.params;
     const { adminKey } = req.body;
     if (adminKey !== ADMIN_SECRET_KEY) return res.status(401).json({ message: "Unauthorized: Invalid Admin Key." });
-    await pool.query('UPDATE students SET exam_taken_at = NULL WHERE id = $1', [id]);
-    res.status(200).json({ message: `Student ID #${id} has been reset.` });
+    // Clear both timestamps to allow a full retake
+    await pool.query('UPDATE students SET exam_taken_at = NULL, exam_started_at = NULL WHERE id = $1', [id]);
+    res.status(200).json({ message: `Student ID #${id} has been reset and can start a new exam.` });
 });
-
 app.get('/api/results', authenticateAdmin, async (req, res) => {
     const { rows } = await pool.query('SELECT id, name, idnumber, examtitle, score, totalquestions, submissiontime FROM results ORDER BY submissiontime DESC');
     res.json(rows);
