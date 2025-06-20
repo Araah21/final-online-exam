@@ -1,4 +1,5 @@
 // server.js - COMPLETE, FINAL, AND SECURED VERSION
+const crypto = require('crypto');
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -8,6 +9,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const SESSION_TIMEOUT_SECONDS = 30; // A session is stale after 30 seconds of no heartbeat
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -126,33 +128,72 @@ app.post('/login', async (req, res) => {
     if (!lastname || !idNumber) {
         return res.status(400).json({ message: "Lastname and ID Number are required." });
     }
+
     try {
         const result = await pool.query('SELECT * FROM students WHERE id_number = $1', [idNumber]);
         const student = result.rows[0];
 
-        if (student && student.lastname.toLowerCase() === lastname.toLowerCase()) {
-            // Check 1: Has the exam already been completed?
-            if (student.exam_taken_at) {
-                return res.status(403).json({ message: "You have already completed the exam and cannot log in again." });
-            }
-
-            // Check 2: Has the exam been started before? If not, mark it as started now.
-            // This is the key logic to prevent a fresh retake.
-            if (!student.exam_started_at) {
-                await pool.query('UPDATE students SET exam_started_at = NOW() WHERE id_number = $1', [idNumber]);
-            }
-            
-            // If the checks pass, issue the token to allow the student to start or resume.
-            const userPayload = { idNumber: student.id_number, name: `${student.firstname} ${student.lastname}` };
-            const accessToken = jwt.sign(userPayload, JWT_SECRET, { expiresIn: '3h' });
-            res.json({ accessToken: accessToken, studentDetails: student });
-
-        } else {
-            res.status(401).json({ message: "Invalid credentials. Please check your Lastname and ID Number." });
+        if (!student || student.lastname.toLowerCase() !== lastname.toLowerCase()) {
+            return res.status(401).json({ message: "Invalid credentials. Please check your Lastname and ID Number." });
         }
+        
+        if (student.exam_taken_at) {
+            return res.status(403).json({ message: "You have already completed the exam." });
+        }
+
+        const now = new Date();
+        const lastSeen = student.session_last_seen_at ? new Date(student.session_last_seen_at) : null;
+        
+        // Check if there is an active session that is NOT stale
+        if (student.active_session_id && lastSeen && (now - lastSeen) / 1000 < SESSION_TIMEOUT_SECONDS) {
+            return res.status(409).json({ message: "An active exam session is already in progress on another device or browser. Please close the other session." });
+        }
+
+        // If we are here, either there's no session or the existing one is stale. Create a new one.
+        const newSessionId = crypto.randomBytes(16).toString('hex');
+        await pool.query(
+            'UPDATE students SET active_session_id = $1, session_last_seen_at = NOW() WHERE id_number = $2',
+            [newSessionId, idNumber]
+        );
+
+        const userPayload = { 
+            idNumber: student.id_number, 
+            name: `${student.firstname} ${student.lastname}`,
+            sessionId: newSessionId // Embed the session ID in the token
+        };
+        const accessToken = jwt.sign(userPayload, JWT_SECRET, { expiresIn: '3h' });
+
+        res.json({ accessToken: accessToken, studentDetails: student });
+
     } catch (err) {
         console.error("Login database error:", err);
         res.status(500).json({ message: "A server error occurred during login." });
+    }
+});
+
+app.post('/api/heartbeat', authenticateToken, async (req, res) => {
+    const { idNumber, sessionId } = req.user; // Get session ID from the decoded JWT
+
+    if (!sessionId) {
+        return res.status(400).json({ message: 'Session ID is missing.' });
+    }
+
+    try {
+        // Update the last_seen timestamp only if the session ID matches
+        const result = await pool.query(
+            'UPDATE students SET session_last_seen_at = NOW() WHERE id_number = $1 AND active_session_id = $2',
+            [idNumber, sessionId]
+        );
+
+        if (result.rowCount === 0) {
+            // This happens if the session was taken over by another device.
+            return res.status(409).json({ message: 'Session expired or taken over.' });
+        }
+
+        res.sendStatus(200); // OK
+    } catch (err) {
+        console.error("Heartbeat error:", err);
+        res.sendStatus(500);
     }
 });
 
@@ -173,7 +214,8 @@ app.post('/submit-exam', authenticateToken, async (req, res) => {
             await client.query(answerQuery, [resultId, answer.question, answer.studentAnswer, answer.correctAnswer, answer.isCorrect]);
         }
 
-        await client.query('UPDATE students SET exam_taken_at = NOW() WHERE id_number = $1', [studentIdNumber]);
+        await client.query('UPDATE students SET exam_taken_at = NOW(), active_session_id = NULL, session_last_seen_at = NULL WHERE id_number = $1', [studentIdNumber]);
+        
         await client.query('DELETE FROM saved_progress WHERE student_id_number = $1', [studentIdNumber]);
         
         await client.query('COMMIT');

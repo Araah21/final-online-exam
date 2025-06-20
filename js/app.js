@@ -78,6 +78,7 @@ function handleExamPage() {
     document.getElementById('exam-title').textContent = examData.title;
     document.getElementById('student-name').textContent = `${studentInfo.firstname} ${studentInfo.lastname}`;
     document.getElementById('student-id').textContent = studentInfo.id_number;
+    
 
     // --- Create all question elements and navigator buttons ---
     allQuestions.forEach((q, index) => {
@@ -257,6 +258,52 @@ function handleExamPage() {
         updateTimer();
         timerInterval = setInterval(updateTimer, 1000);
     }
+
+    // --- SERVER-SIDE HEARTBEAT LOGIC ---
+    let heartbeatInterval;
+
+    function startHeartbeat() {
+        // Stop any previous interval
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+
+        const sendHeartbeat = () => {
+            fetch('https://csuaparr-final-online-exam.onrender.com/api/heartbeat', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            })
+            .then(response => {
+                if (response.status === 409) {
+                    // Another device has taken over the session. Lock this page.
+                    clearInterval(heartbeatInterval);
+                    if (timerInterval) clearInterval(timerInterval); // Stop the timer
+                    document.getElementById('exam-container').style.display = 'none';
+                    // You can reuse the multi-tab message div or create a new one
+                    const msgDiv = document.getElementById('multi-tab-message');
+                    msgDiv.innerHTML = '<h1>Session Expired</h1><p style="font-size: 1.2rem; color: #dc3545;">This exam session has been taken over by a new login on another device or browser. This tab is now inactive.</p>';
+                    msgDiv.style.display = 'block';
+                } else if (!response.ok) {
+                    console.error('Heartbeat failed.', response.status);
+                }
+            })
+            .catch(err => console.error('Network error during heartbeat:', err));
+        };
+
+        // Send a heartbeat immediately and then every 15 seconds
+        sendHeartbeat();
+        heartbeatInterval = setInterval(sendHeartbeat, 15000); 
+    }
+
+    // Start the heartbeat when the page loads
+    startHeartbeat();
+
+    // Also, clear the heartbeat interval when the user submits the exam
+    // Find the submitExam function and add this line at the top:
+    // function submitExam() {
+    //     clearInterval(heartbeatInterval); // <-- ADD THIS
+    //     ... rest of the function
+    // }
     
     // Start the timer when the exam page loads
     startPersistentTimer();
