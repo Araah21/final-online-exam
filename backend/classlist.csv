@@ -9,7 +9,7 @@ id_number,lastname,firstname,course,section
 23-10567,bombita,jenna,BSAIS,A
 23-10753,bugarin,jolina,BSAIS,A
 23-02564,calantas,mark,BSAIS,A
-APA-23-10684,calata,rizza,BSAIS,A
+23-10684,calata,rizza,BSAIS,A
 23-11668,calaycay,jeniefaye,BSAIS,A
 23-11295,calisnao,janzen,BSAIS,A
 23-10042,comillas,bijoy,BSAIS,A
@@ -138,12 +138,12 @@ APA-23-10684,calata,rizza,BSAIS,A
 23-10334,Pallago,aprille rose,BSAIS,c
 23-10617,Palor,marah,BSAIS,c
 23-11602,Pascua,ermie,BSAIS,c
-APA-23-2201,Patubo,camille,BSAIS,c
+23-2201,Patubo,camille,BSAIS,c
 23-11293,Quillopo,divine grace,BSAIS,c
 23-11216,Racho,baby joy,BSAIS,c
 23-40039,Ramos,angela mae,BSAIS,c
 23-10218,Sabuyas,angel joyce,BSAIS,c
-APA-23-2330,Sanchez,chanzelyn,BSAIS,c
+23-2330,Sanchez,chanzelyn,BSAIS,c
 23-10571,Sibbaluca,myra,BSAIS,c
 22-10952,Sistoza,samantha,BSAIS,c
 23-10147,Sola,blessie may,BSAIS,c
@@ -171,7 +171,7 @@ APA-23-2330,Sanchez,chanzelyn,BSAIS,c
 23-12118,castro,ria,BSAIS,d
 23-10679,colega,kristine,BSAIS,d
 23-10097,contillo,cherry,BSAIS,d
-APA-23-2218,corpuz,james lloyd,BSAIS,d
+23-2218,corpuz,james lloyd,BSAIS,d
 23-10810,costales,elieajh,BSAIS,d
 23-16327,dayap,julie-ann,BSAIS,d
 23-13335,de la cruz,angeline,BSAIS,d
@@ -213,65 +213,118 @@ APA-23-2218,corpuz,james lloyd,BSAIS,d
 23-11423,unico,elaidia mae,BSAIS,d
 23-10739,urayani,jesilyn,BSAIS,d
 23-12114,valentin,armand,BSAIS,d
-22-11934,agbisit,allen,BSAIS,E
-22-10755,agbisit,girlie joy,BSAIS,E
-22-11701,anagaran,aira,BSAIS,E
-22-10908,apolinario,reychelle,BSAIS,E
-22-10203,aquileña,rian,BSAIS,E
-22-11942,balao,michael john,BSAIS,E
-22-11309,baniel,paula marie,BSAIS,E
-22-10506,basilio,jonalyn,BSAIS,E
-22-01098,blancas,dianne,BSAIS,E
-22-11828,cabebe,john,BSAIS,E
-20-10853,calata,tom,BSAIS,E
-22-12236,cruzado,regine,BSAIS,E
-22-11550,espiritu,jaycel,BSAIS,E
-22-10246,furagganan,karen,BSAIS,E
-22-10507,galban,rowena,BSAIS,E
-22-10594,guinacaran,john kenneth,BSAIS,E
-22-10329,gumarang,levi john,BSAIS,E
-22-11854,inares,donna,BSAIS,E
-22-10103,itona,farrah faye,BSAIS,E
-22-10834,jacinto,divine,BSAIS,E
-22-10599,julian,rio jay,BSAIS,E
-22-10643,labbao,princess joahna mae,BSAIS,E
-22-11043,lasam,melissa,BSAIS,E
-22-10487,ligsay,jade,BSAIS,E
-22-10438,limon,glenn ford,BSAIS,E
-22-10426,losbaños,kyle,BSAIS,E
-22-71287,lubbui,kaye stephanie nicole,BSAIS,E
-22-11433,mamangon,joseph amiel miles,BSAIS,E
-22-11494,maramag,edcell rhap,BSAIS,E
-22-11427,maramag,jhun mar,BSAIS,E
-22-30486,mirafuente,wyan jonas,BSAIS,E
-22-11601,molina,jennifer,BSAIS,E
-22-11066,noriega,lean,BSAIS,E
-22-11799,orteza,angel faye,BSAIS,E
-22-11930,pascua,althea gracee,BSAIS,E
-22-11693,penetrante,sarah jane,BSAIS,E
-22-12131,quintos,jestoni,BSAIS,E
-22-11931,rabot,romelyn,BSAIS,E
-22-10979,ragudo,may ann,BSAIS,E
-22-11850,ramos,jhonful rhodel,BSAIS,E
-22-10504,ramos,renzjay,BSAIS,E
-22-10900,reintegrado,kathlene mae,BSAIS,E
-21-0011566,reynon,jaylan,BSAIS,E
-22-11244,rivera,cindy,BSAIS,E
-22-01623,rollon,fatima,BSAIS,E
-22-11995,rosendo,dale vincent,BSAIS,E
-22-16037,ruama,dionalyn,BSAIS,E
-22-10127,saguid,daniel,BSAIS,E
-22-10554,septimo,aira lei,BSAIS,E
-22-11241,siriban ,mark jerik,BSAIS,E
-22-10247,sola,ana,BSAIS,E
-22-10836,tabbay,camille,BSAIS,E
-22-11016,tabbay,sharmaine,BSAIS,E
-22-10583,tisado,manilyn,BSAIS,E
-22-10499,toco,jocelyn,BSAIS,E
-20-22139,ulibas,bryan,BSAIS,E
-22-11107,urbis,franz dale,BSAIS,E
-22-40043,valencia,robelyn,BSAIS,E
-22-12049,vallangca,darel,BSAIS,E
-22-10286,vidad,mary jane,BSAIS,E
-22-10063,vista,jio,BSAIS,E
-22-77777,cabalbag,araah,BSAIS,a
+22-11934,agbisit,allen,BSIT,E
+22-10755,agbisit,girlie joy,BSIT,E
+22-11701,anagaran,aira,BSIT,E
+22-10908,apolinario,reychelle,BSIT,E
+22-10203,aquileña,rian,BSIT,E
+22-11942,balao,michael john,BSIT,E
+22-11309,baniel,paula marie,BSIT,E
+22-10506,basilio,jonalyn,BSIT,E
+22-01098,blancas,dianne,BSIT,E
+22-11828,cabebe,john,BSIT,E
+20-10853,calata,tom,BSIT,E
+22-12236,cruzado,regine,BSIT,E
+22-11550,espiritu,jaycel,BSIT,E
+22-10246,furagganan,karen,BSIT,E
+22-10507,galban,rowena,BSIT,E
+22-10594,guinacaran,john kenneth,BSIT,E
+22-10329,gumarang,levi john,BSIT,E
+22-11854,inares,donna,BSIT,E
+22-10103,itona,farrah faye,BSIT,E
+22-10834,jacinto,divine,BSIT,E
+22-10599,julian,rio jay,BSIT,E
+22-10643,labbao,princess joahna mae,BSIT,E
+22-11043,lasam,melissa,BSIT,E
+22-10487,ligsay,jade,BSIT,E
+22-10438,limon,glenn ford,BSIT,E
+22-10426,losbaños,kyle,BSIT,E
+22-71287,lubbui,kaye stephanie nicole,BSIT,E
+22-11433,mamangon,joseph amiel miles,BSIT,E
+22-11494,maramag,edcell rhap,BSIT,E
+22-11427,maramag,jhun mar,BSIT,E
+22-30486,mirafuente,wyan jonas,BSIT,E
+22-11601,molina,jennifer,BSIT,E
+22-11066,noriega,lean,BSIT,E
+22-11799,orteza,angel faye,BSIT,E
+22-11930,pascua,althea gracee,BSIT,E
+22-11693,penetrante,sarah jane,BSIT,E
+22-12131,quintos,jestoni,BSIT,E
+22-11931,rabot,romelyn,BSIT,E
+22-10979,ragudo,may ann,BSIT,E
+22-11850,ramos,jhonful rhodel,BSIT,E
+22-10504,ramos,renzjay,BSIT,E
+22-10900,reintegrado,kathlene mae,BSIT,E
+21-0011566,reynon,jaylan,BSIT,E
+22-11244,rivera,cindy,BSIT,E
+22-01623,rollon,fatima,BSIT,E
+22-11995,rosendo,dale vincent,BSIT,E
+22-16037,ruama,dionalyn,BSIT,E
+22-10127,saguid,daniel,BSIT,E
+22-10554,septimo,aira lei,BSIT,E
+22-11241,siriban ,mark jerik,BSIT,E
+22-10247,sola,ana,BSIT,E
+22-10836,tabbay,camille,BSIT,E
+22-11016,tabbay,sharmaine,BSIT,E
+22-10583,tisado,manilyn,BSIT,E
+22-10499,toco,jocelyn,BSIT,E
+20-22139,ulibas,bryan,BSIT,E
+22-11107,urbis,franz dale,BSIT,E
+22-40043,valencia,robelyn,BSIT,E
+22-12049,vallangca,darel,BSIT,E
+22-10286,vidad,mary jane,BSIT,E
+22-10063,vista,jio,BSIT,E
+22-77777,cabalbag,araah,BSIT,a
+22-11646,Abinoja,June,BSIT,D
+22-10349,ALVIAR,JESSICA,BSIT,D
+21-11144,Cabus,Sonny,BSIT,D
+22-10789,Collado,Aifha Sheena,BSIT,D
+22-11072,Conciso,Christian,BSIT,D
+22-00017,Danao,Joice,BSIT,D
+22-10930,Del Rosario,Sean Arvee,BSIT,D
+22-11073,HERMITANIO,LEOVAL,BSIT,D
+22-11480,Lumbo,Francis Dominick,BSIT,D
+21-11867,Lunato,Arnel,BSIT,D
+22-10600,Malabag,Marc Josua,BSIT,D
+22-11741,Melicana,Eddierick,BSIT,D
+22-11551,NATALIA,Arvin,BSIT,D
+22-11519,Ramos,Reniel,BSIT,D
+22-12207,Ramos,Mark Napoleon,BSIT,D
+21-04321,Ursua,Marc John,BSIT,D
+22-10267,Villanueva,JOLINA,BSIT,D
+21-11393,Yoldi,Janelyn,BSIT,D
+22-11770,MOLINA,Novie Mar,BSIT,D
+22-10404,Mabbagu,Ivy Mae,BSIT,D
+22-10279,Savella,James,BSIT,D
+12-11877,Tagal,Carla Mae,BSIT,D
+22-11024,Pagaduan,Ma. Samantha,BSIT,D
+22-30114,Lumbo,Loren joy,BSIT,D
+22-10318,AQUINO,CLARIBELE,BSIT,D
+22-10919,Sumer,Roniel,BSIT,D
+22-10614,UGALE,RONA MAY,BSIT,D
+22-00304,Carascon,Rhea Joy,BSIT,D
+22-10991,Paneda,Marc Dave,BSIT,D
+22-11113,Olangco,Nathalia,BSIT,D
+22-11003,Agluba,Jasmine,BSIT,D
+22-11865,De La Cruz,Jun Gerald,BSIT,D
+22-12118,Verceles,Shirley,BSIT,D
+22-11019,Navarrete,Flordan,BSIT,D
+22-10102,Palmea,Eizenn,BSIT,D
+22-11086,Urmatam,Jomar,BSIT,D
+22-12056,Leste,Adam jake,BSIT,D
+22-00694,UBERITA,MARLA MAE,BSIT,D
+22-11965,Mape,Orlando,BSIT,D
+22-11116,Laddaran,Janes,BSIT,D
+22-11762,Ritarita,Mark Francis,BSIT,D
+19-10012,Arellano,Dan-dan,BSIT,D
+22-12028,URBAN,JHON PETER,BSIT,D
+22-10858,Gammad,Erika,BSIT,D
+22-10577,Desor,Althea,BSIT,D
+22-11136,Tactay,Sialibeth,BSIT,D
+22-10636,Napoles,Charles,BSIT,D
+20-22407,RABUR,EDZEN FRHEIZER,BSIT,D
+22-11374,MAGAYANO,MAYDEN GENEVEIVE,BSIT,D
+22-10819,Banastas,Pamela Rose,BSIT,D
+20-10535,Padre,Jowel,BSIT,D
+22-11571,Campo,Mar Scailer,BSIT,D
+22-12204,SOLA,KENNISON,BSIT,D
