@@ -218,20 +218,48 @@ function handleExamPage() {
     
     showQuestion(0);
 
-    let timeLeft = 3600;
     const timerElement = document.getElementById('time');
-    const timerInterval = setInterval(() => {
-        const minutes = Math.floor(timeLeft / 60);
-        let seconds = timeLeft % 60;
-        seconds = seconds < 10 ? '0' + seconds : seconds;
-        timerElement.textContent = `${minutes}:${seconds}`;
-        timeLeft--;
-        if (timeLeft < 0) {
-            clearInterval(timerInterval);
-            alert('Time is up!');
-            submitExam();
+    const examDurationInSeconds = 3600; // 60 minutes
+    let timerInterval;
+
+    function startPersistentTimer() {
+        // Stop any existing timer to prevent duplicates
+        if (timerInterval) clearInterval(timerInterval);
+
+        // Get the exam end time from localStorage
+        let examEndTime = localStorage.getItem('examEndTime');
+
+        // If it doesn't exist, this is the first time. Set it now.
+        if (!examEndTime) {
+            examEndTime = Date.now() + (examDurationInSeconds * 1000);
+            localStorage.setItem('examEndTime', examEndTime);
         }
-    }, 1000);
+
+        // Function to update the timer display
+        const updateTimer = () => {
+            const currentTime = Date.now();
+            const timeLeft = Math.round((examEndTime - currentTime) / 1000);
+
+            if (timeLeft <= 0) {
+                timerElement.textContent = "0:00";
+                clearInterval(timerInterval);
+                alert('Time is up! The exam will now be submitted.');
+                submitExam();
+            } else {
+                const minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                seconds = seconds < 10 ? '0' + seconds : seconds;
+                timerElement.textContent = `${minutes}:${seconds}`;
+            }
+        };
+
+        // Update the timer immediately and then every second
+        updateTimer();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+    
+    // Start the timer when the exam page loads
+    startPersistentTimer();
 
     // --- Security Features ---
     let tabSwitchCount = 0;
@@ -350,6 +378,7 @@ function handleResultsPage() {
         localStorage.removeItem('examResults');
         localStorage.removeItem('authToken');
         localStorage.removeItem('examType');
+        localStorage.removeItem('examEndTime');
         window.location.href = 'index.html';
     });
 }
