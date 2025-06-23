@@ -242,7 +242,16 @@
             }
         }
         
-        const renderStudentRow = (s) => { const r = document.createElement('tr'); let st = 'Not Taken', sc = 'status-not-taken'; if (s.exam_taken_at) { st = 'Completed'; sc = 'status-completed'; } else if (s.exam_started_at) { st = 'In Progress'; sc = 'status-in-progress'; } const ab = (s.exam_started_at || s.exam_taken_at) ? `<button class="btn btn-retake" data-id="${s.id}">Allow Retake</button>` : 'N/A'; r.innerHTML = `<td>${s.firstname} ${s.lastname}</td><td>${s.id_number}</td><td>${s.course||''}</td><td>${s.section||''}</td><td><span class="${sc}">${st}</span></td><td>${ab}</td>`; return r; };
+        const renderStudentRow = (s) => {
+            const r = document.createElement('tr');
+            let st = 'Not Taken', sc = 'status-not-taken';
+            if (s.exam_taken_at) { st = 'Completed'; sc = 'status-completed'; }
+            else if (s.exam_started_at) { st = 'In Progress'; sc = 'status-in-progress'; }
+            const ab = (s.exam_started_at || s.exam_taken_at) ? `<button class="btn btn-retake" data-id="${s.id}">Allow Retake</button>` : 'N/A';
+            // The cells for course and section are now correctly included.
+            r.innerHTML = `<td>${s.firstname} ${s.lastname}</td><td>${s.id_number}</td><td>${s.course || ''}</td><td>${s.section || ''}</td><td><span class="${sc}">${st}</span></td><td>${ab}</td>`;
+            return r;
+        };
         const renderResultRow = (r) => { const row = document.createElement('tr'); row.innerHTML = `<td>${r.name}</td><td>${r.course||''}</td><td>${r.section||''}</td><td>${r.score}/${r.totalquestions}</td><td>${r.examtitle}</td><td>${new Date(r.submissiontime).toLocaleString()}</td><td><button class="btn btn-delete" data-id="${r.id}">Delete</button></td>`; return row; };
         const renderAnalysisRow = (i) => { const r = document.createElement('tr'); const sr = (i.total_attempts > 0) ? ((i.correct_answers / i.total_attempts) * 100).toFixed(1) + '%' : '0%'; r.innerHTML = `<td>${i.question_text}</td><td>${i.total_attempts}</td><td>${i.correct_answers}</td><td>${sr}</td>`; return r; };
 
