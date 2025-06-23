@@ -272,7 +272,6 @@ app.post('/api/admin/login', async (req, res) => {
     }
 });
 
-
 app.get('/', (req, res) => res.redirect('/admin'));
 app.get('/admin', authenticateAdmin, (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
@@ -291,8 +290,7 @@ app.put('/api/students/:id/reset', authenticateAdmin, async (req, res) => {
     res.status(200).json({ message: `Student ID #${id} has been reset and can start a new exam.` });
 });
 app.get('/api/results', authenticateAdmin, async (req, res) => {
-    // UPDATED: Now fetches course and section for filtering on the frontend.
-    const { rows } = await pool.query('SELECT id, name, course, section, idnumber, examtitle, score, totalquestions, submissiontime FROM results ORDER BY submissiontime DESC');
+    const { rows } = await pool.query('SELECT id, name, idnumber, examtitle, score, totalquestions, submissiontime FROM results ORDER BY submissiontime DESC');
     res.json(rows);
 });
 
