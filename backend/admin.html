@@ -4,32 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exam Admin Dashboard</title>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
     <style>
         :root {
-            --primary-color: #0056b3;
-            --success-color: #218838;
-            --danger-color: #c82333;
-            --warning-color: #e0a800;
-            --info-color: #138496;
-            --light-gray: #f8f9fa;
-            --medium-gray: #dee2e6;
-            --dark-gray: #343a40;
-            --white: #fff;
+            --primary-color: #0056b3; --success-color: #218838; --danger-color: #c82333;
+            --warning-color: #e0a800; --info-color: #138496; --light-gray: #f8f9fa;
+            --medium-gray: #dee2e6; --dark-gray: #343a40; --white: #fff;
         }
-        body {
-            font-family: 'Poppins', sans-serif;
-            line-height: 1.7;
-            background-color: var(--light-gray);
-            color: #212529;
-            margin: 0;
-            padding: 20px;
-            font-size: 16px;
-        }
+        body { font-family: 'Poppins', sans-serif; line-height: 1.7; background-color: var(--light-gray); color: #212529; margin: 0; padding: 20px; font-size: 16px; }
         .container { max-width: 1400px; margin: auto; }
         h1, h2 { color: var(--dark-gray); border-bottom: 1px solid var(--medium-gray); padding-bottom: 10px; font-weight: 600; }
         h1 { font-size: 2rem; border-bottom-width: 2px; border-bottom-color: var(--primary-color); margin-bottom: 20px; }
@@ -45,7 +29,7 @@
         .tab-content.active { display: block; }
         .table-container { background: var(--white); padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .table-wrapper { overflow-x: auto; }
-        .controls { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+        .controls { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
         .filter-group { display: flex; flex-direction: column; }
         .filter-group label { font-size: 0.9rem; margin-bottom: 4px; color: #6c757d; font-weight: 500; }
         .search-box, .filter-select { padding: 10px; font-size: 1rem; font-family: 'Poppins', sans-serif; border: 1px solid var(--medium-gray); border-radius: 5px; }
@@ -62,202 +46,152 @@
         th { background-color: var(--light-gray); font-weight: 600; }
         th.sortable { cursor: pointer; }
         th.sortable:hover { background-color: #e2e6ea; }
-        .sort-arrow { display: inline-block; margin-left: 8px; opacity: 0.5; }
+        .sort-arrow { display: inline-block; margin-left: 8px; opacity: 0.5; width: 1em; }
         .pagination { margin-top: 20px; text-align: center; }
         .pagination button { margin: 0 5px; }
         .status-completed { color: var(--success-color); font-weight: 600; }
         .status-in-progress { color: var(--warning-color); font-weight: 600; }
         .status-not-taken { color: #6c757d; }
         .loader { text-align: center; padding: 40px; font-size: 1.2rem; color: #6c757d; }
-        @media (max-width: 768px) {
-            body { padding: 10px; } .controls { flex-direction: column; align-items: stretch; }
-        }
+        @media (max-width: 768px) { body { padding: 10px; } .controls { flex-direction: column; align-items: stretch; } }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Exam Admin Dashboard</h1>
-        <div class="card-deck" id="summary-cards"><!-- Summary Cards --></div>
+        <div class="card-deck" id="summary-cards">
+            <div class="card"><h3>Total Students</h3><div class="stat" id="stat-total-students">...</div></div>
+            <div class="card"><h3>Exams Completed</h3><div class="stat" id="stat-completed-exams">...</div></div>
+            <div class="card"><h3>Completion Rate</h3><div class="stat" id="stat-completion-rate">...%</div></div>
+        </div>
+
         <div class="tabs">
             <button class="tab-button active" data-tab="roster">Student Roster</button>
             <button class="tab-button" data-tab="results">Exam Results</button>
             <button class="tab-button" data-tab="analysis">Question Analysis</button>
         </div>
 
-        <!-- Student Roster Tab -->
         <div id="roster" class="tab-content active">
             <div class="table-container">
                 <h2>Student Roster & Status</h2>
                 <div class="controls">
-                    <div class="filter-group">
-                        <label for="search-students">Search Name/ID</label>
-                        <input type="search" id="search-students" class="search-box" placeholder="Search...">
-                    </div>
-                    <div class="filter-group">
-                        <label for="roster-filter-course">Course</label>
-                        <select id="roster-filter-course" class="filter-select"><option value="all">All Courses</option></select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="roster-filter-section">Section</label>
-                        <select id="roster-filter-section" class="filter-select"><option value="all">All Sections</option></select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="roster-rows-per-page">Show</label>
-                        <select id="roster-rows-per-page" class="filter-select">
-                            <option value="10">10 Rows</option><option value="25">25 Rows</option><option value="50">50 Rows</option><option value="100">100 Rows</option>
-                        </select>
-                    </div>
+                    <div class="filter-group"><label for="search-students">Search Name/ID</label><input type="search" id="search-students" class="search-box" placeholder="Search..."></div>
+                    <div class="filter-group"><label for="roster-filter-course">Course</label><select id="roster-filter-course" class="filter-select"><option value="all">All Courses</option></select></div>
+                    <div class="filter-group"><label for="roster-filter-section">Section</label><select id="roster-filter-section" class="filter-select"><option value="all">All Sections</option></select></div>
+                    <div class="filter-group"><label for="roster-filter-status">Status</label><select id="roster-filter-status" class="filter-select"><option value="all">All Statuses</option><option value="completed">Completed</option><option value="in_progress">In Progress</option><option value="not_taken">Not Taken</option></select></div>
+                    <div class="filter-group"><label for="roster-rows-per-page">Show</label><select id="roster-rows-per-page" class="filter-select"><option value="10">10 Rows</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select></div>
                 </div>
-                <div class="table-wrapper">
-                    <table id="students-table">
-                        <thead><tr><th class="sortable" data-sort-key="lastname">Student Name <span class="sort-arrow"></span></th><th>ID Number</th><th>Course</th><th>Section</th><th>Exam Status</th><th>Action</th></tr></thead>
-                        <tbody id="students-tbody"></tbody>
-                    </table>
-                </div>
+                <div class="table-wrapper"><table id="students-table"><thead><tr><th class="sortable" data-sort-key="lastname">Student Name <span class="sort-arrow"></span></th><th>ID Number</th><th>Course</th><th>Section</th><th>Exam Status</th><th>Action</th></tr></thead><tbody id="students-tbody"></tbody></table></div>
                 <div class="pagination" id="students-pagination"></div>
             </div>
         </div>
 
-        <!-- Exam Results Tab -->
         <div id="results" class="tab-content">
             <div class="table-container">
                 <h2>Exam Results</h2>
                 <div class="controls">
-                    <div class="filter-group">
-                        <label for="results-filter-course">Course</label>
-                        <select id="results-filter-course" class="filter-select"><option value="all">All Courses</option></select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="results-filter-section">Section</label>
-                        <select id="results-filter-section" class="filter-select"><option value="all">All Sections</option></select>
-                    </div>
-                     <div class="filter-group">
-                        <label for="results-rows-per-page">Show</label>
-                        <select id="results-rows-per-page" class="filter-select">
-                            <option value="10">10 Rows</option><option value="25">25 Rows</option><option value="50">50 Rows</option><option value="100">100 Rows</option>
-                        </select>
-                    </div>
-                    <a href="/download-results" class="btn btn-download" style="margin-left: auto;">Download All as CSV</a>
+                    <div class="filter-group"><label for="results-filter-course">Course</label><select id="results-filter-course" class="filter-select"><option value="all">All</option></select></div>
+                    <div class="filter-group"><label for="results-filter-section">Section</label><select id="results-filter-section" class="filter-select"><option value="all">All</option></select></div>
+                    <div class="filter-group"><label for="results-rows-per-page">Show</label><select id="results-rows-per-page" class="filter-select"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select></div>
+                    <a id="download-results-btn" href="#" class="btn btn-download" style="margin-left: auto;">Download All as CSV</a>
+                    <button id="clear-all-btn" class="btn btn-clear">Clear All Results</button>
                 </div>
-                <div class="table-wrapper">
-                    <table id="results-table">
-                        <thead><tr><th>Name</th><th>Course</th><th>Section</th><th class="sortable" data-sort-key="score">Score <span class="sort-arrow"></span></th><th>Exam Title</th><th>Submitted At</th><th>Action</th></tr></thead>
-                        <tbody id="results-tbody"></tbody>
-                    </table>
-                </div>
-                 <div class="pagination" id="results-pagination"></div>
+                <div class="table-wrapper"><table id="results-table"><thead><tr><th>Name</th><th>Course</th><th>Section</th><th class="sortable" data-sort-key="score">Score <span class="sort-arrow"></span></th><th>Exam Title</th><th>Submitted At</th><th>Action</th></tr></thead><tbody id="results-tbody"></tbody></table></div>
+                <div class="pagination" id="results-pagination"></div>
             </div>
         </div>
 
-        <!-- Question Analysis Tab -->
         <div id="analysis" class="tab-content">
             <div class="table-container">
-                <h2>Accounting Information System - Question Analysis</h2>
-                <div class="table-wrapper">
-                    <table id="analysis-table-ais">
-                        <thead><tr><th>Question</th><th>Total Attempts</th><th>Correct Answers</th><th>Success Rate</th></tr></thead>
-                        <tbody id="analysis-tbody-ais"></tbody>
-                    </table>
+                <h2>Accounting Information System - Analysis</h2>
+                <div class="controls">
+                    <div class="filter-group"><label for="analysis-ais-rows-per-page">Show</label><select id="analysis-ais-rows-per-page" class="filter-select"><option value="10">10</option><option value="25">25</option><option value="100">100</option></select></div>
+                    <a id="download-ais-btn" href="#" class="btn btn-download" style="margin-left: auto;">Download AIS Analysis</a>
                 </div>
-                
-                <h2>Network Operating System - Question Analysis</h2>
-                <div class="table-wrapper">
-                    <table id="analysis-table-nos">
-                        <thead><tr><th>Question</th><th>Total Attempts</th><th>Correct Answers</th><th>Success Rate</th></tr></thead>
-                        <tbody id="analysis-tbody-nos"></tbody>
-                    </table>
+                <div class="table-wrapper"><table id="analysis-ais-table"><thead><tr><th>Question</th><th>Attempts</th><th>Correct</th><th>Success Rate</th></tr></thead><tbody id="analysis-ais-tbody"></tbody></table></div>
+                <div class="pagination" id="analysis-ais-pagination"></div>
+            </div>
+            <div class="table-container">
+                <h2>Network Operating System - Analysis</h2>
+                <div class="controls">
+                    <div class="filter-group"><label for="analysis-nos-rows-per-page">Show</label><select id="analysis-nos-rows-per-page" class="filter-select"><option value="10">10</option><option value="25">25</option><option value="100">100</option></select></div>
+                    <a id="download-nos-btn" href="#" class="btn btn-download" style="margin-left: auto;">Download NOS Analysis</a>
                 </div>
+                <div class="table-wrapper"><table id="analysis-nos-table"><thead><tr><th>Question</th><th>Attempts</th><th>Correct</th><th>Success Rate</th></tr></thead><tbody id="analysis-nos-tbody"></tbody></table></div>
+                <div class="pagination" id="analysis-nos-pagination"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- GLOBAL STATE ---
+        // --- CONFIG & GLOBAL STATE ---
+        const API_BASE_URL = 'https://csuaparr-final-online-exam.onrender.com';
         let allStudents = [], allResults = [], allAnalysis = [];
         let adminKey = '';
         const viewState = {
-            roster: { data: [], currentPage: 1, rowsPerPage: 10, sortBy: 'lastname', sortDir: 'asc', filters: { course: 'all', section: 'all', search: '' } },
+            roster: { data: [], currentPage: 1, rowsPerPage: 10, sortBy: 'lastname', sortDir: 'asc', filters: { course: 'all', section: 'all', status: 'all', search: '' } },
             results: { data: [], currentPage: 1, rowsPerPage: 10, sortBy: 'score', sortDir: 'desc', filters: { course: 'all', section: 'all' } },
+            analysisAis: { data: [], currentPage: 1, rowsPerPage: 10 },
+            analysisNos: { data: [], currentPage: 1, rowsPerPage: 10 },
         };
 
-        // --- DOM ELEMENTS ---
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
-        
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', initializeDashboard);
         
         async function initializeDashboard() {
-            // Show loading states
-            document.getElementById('students-tbody').innerHTML = `<tr><td colspan="6" class="loader">Loading...</td></tr>`;
-            document.getElementById('results-tbody').innerHTML = `<tr><td colspan="7" class="loader">Loading...</td></tr>`;
-
             try {
                 const [studentsRes, resultsRes, analysisRes] = await Promise.all([
-                    fetch('/api/students'),
-                    fetch('/api/results'),
-                    fetch('/api/analysis')
+                    fetch(`${API_BASE_URL}/api/students`),
+                    fetch(`${API_BASE_URL}/api/results`),
+                    fetch(`${API_BASE_URL}/api/analysis`)
                 ]);
+                
+                if (!studentsRes.ok || !resultsRes.ok || !analysisRes.ok) throw new Error('One or more API requests failed.');
+
                 allStudents = await studentsRes.json();
                 allResults = await resultsRes.json();
                 allAnalysis = await analysisRes.json();
-
+                
                 populateFilters();
                 updateAllViews();
                 updateSummaryCards();
-            } catch (error) {
-                console.error("Failed to initialize dashboard:", error);
-                alert("Failed to load dashboard data. Please refresh.");
-            }
+                updateDownloadLinks();
+            } catch (error) { console.error("Failed to initialize dashboard:", error); alert("Failed to load dashboard data."); }
+        }
+        
+        function updateDownloadLinks() {
+            document.getElementById('download-results-btn').href = `${API_BASE_URL}/download-results`;
+            document.getElementById('download-ais-btn').href = `${API_BASE_URL}/api/analysis/download?exam=ais`;
+            document.getElementById('download-nos-btn').href = `${API_BASE_URL}/api/analysis/download?exam=nos`;
         }
 
         function populateFilters() {
             const courses = [...new Set(allStudents.map(s => s.course))].filter(Boolean);
             const sections = [...new Set(allStudents.map(s => s.section))].filter(Boolean);
-            const courseSelects = document.querySelectorAll('#roster-filter-course, #results-filter-course');
-            const sectionSelects = document.querySelectorAll('#roster-filter-section, #results-filter-section');
-
-            courseSelects.forEach(select => {
-                select.innerHTML = '<option value="all">All Courses</option>'; // Reset
-                courses.forEach(course => select.add(new Option(course, course)));
-            });
-            sectionSelects.forEach(select => {
-                select.innerHTML = '<option value="all">All Sections</option>'; // Reset
-                sections.forEach(section => select.add(new Option(section, section)));
-            });
+            document.querySelectorAll('#roster-filter-course, #results-filter-course').forEach(s => { s.innerHTML = '<option value="all">All Courses</option>'; courses.forEach(c => s.add(new Option(c, c))); });
+            document.querySelectorAll('#roster-filter-section, #results-filter-section').forEach(s => { s.innerHTML = '<option value="all">All Sections</option>'; sections.forEach(sec => s.add(new Option(sec, sec))); });
         }
 
-        // --- MASTER RENDER CONTROLLERS ---
-        function updateAllViews() {
-            updateRosterView();
-            updateResultsView();
-            updateAnalysisView();
-        }
+        function updateAllViews() { updateRosterView(); updateResultsView(); updateAnalysisView(); }
 
         function updateRosterView() {
             let data = [...allStudents];
             const state = viewState.roster;
-            
-            // Apply filters
-            if (state.filters.search) {
-                const s = state.filters.search.toLowerCase();
-                data = data.filter(item => 
-                    item.firstname.toLowerCase().includes(s) || 
-                    item.lastname.toLowerCase().includes(s) || 
-                    item.id_number.includes(s)
-                );
-            }
+            const s = state.filters.search.toLowerCase();
+            if (s) data = data.filter(item => item.firstname.toLowerCase().includes(s) || item.lastname.toLowerCase().includes(s) || item.id_number.includes(s));
             if (state.filters.course !== 'all') data = data.filter(item => item.course === state.filters.course);
             if (state.filters.section !== 'all') data = data.filter(item => item.section === state.filters.section);
-            
-            // Apply sorting
+            if (state.filters.status !== 'all') {
+                if(state.filters.status === 'completed') data = data.filter(item => item.exam_taken_at);
+                else if(state.filters.status === 'in_progress') data = data.filter(item => item.exam_started_at && !item.exam_taken_at);
+                else if(state.filters.status === 'not_taken') data = data.filter(item => !item.exam_started_at);
+            }
             data.sort((a, b) => {
-                const valA = a[state.sortBy] || '';
-                const valB = b[state.sortBy] || '';
+                const valA = (a[state.sortBy] || '').toString(); 
+                const valB = (b[state.sortBy] || '').toString();
                 const comparison = valA.localeCompare(valB, undefined, { numeric: true });
                 return state.sortDir === 'asc' ? comparison : -comparison;
             });
-            
             state.data = data;
             renderTable('students', renderStudentRow, state);
         }
@@ -265,16 +199,12 @@
         function updateResultsView() {
             let data = [...allResults];
             const state = viewState.results;
-
             if (state.filters.course !== 'all') data = data.filter(item => item.course === state.filters.course);
             if (state.filters.section !== 'all') data = data.filter(item => item.section === state.filters.section);
-
             data.sort((a, b) => {
-                const valA = a[state.sortBy];
-                const valB = b[state.sortBy];
+                const valA = a[state.sortBy]; const valB = b[state.sortBy];
                 return state.sortDir === 'asc' ? valA - valB : valB - valA;
             });
-            
             state.data = data;
             renderTable('results', renderResultRow, state);
         }
@@ -282,118 +212,104 @@
         function updateAnalysisView() {
             const aisKeywords = ['accounting', 'ais', 'information system'];
             const nosKeywords = ['network', 'nos', 'operating system'];
-            
-            const aisData = allAnalysis.filter(q => aisKeywords.some(kw => q.question_text.toLowerCase().includes(kw)));
-            const nosData = allAnalysis.filter(q => nosKeywords.some(kw => q.question_text.toLowerCase().includes(kw)));
-            
-            renderAnalysisTable('ais', aisData);
-            renderAnalysisTable('nos', nosData);
+            viewState.analysisAis.data = allAnalysis.filter(q => aisKeywords.some(kw => q.examtitle.toLowerCase().includes(kw)));
+            viewState.analysisNos.data = allAnalysis.filter(q => nosKeywords.some(kw => q.examtitle.toLowerCase().includes(kw)));
+            renderTable('analysis-ais', renderAnalysisRow, viewState.analysisAis);
+            renderTable('analysis-nos', renderAnalysisRow, viewState.analysisNos);
         }
 
-        // --- GENERIC TABLE RENDERER ---
         function renderTable(tableId, renderRowFunc, state) {
             const tbody = document.getElementById(`${tableId}-tbody`);
             const paginationContainer = document.getElementById(`${tableId}-pagination`);
-            tbody.innerHTML = '';
-            paginationContainer.innerHTML = '';
-
-            if (state.data.length === 0) {
+            tbody.innerHTML = ''; paginationContainer.innerHTML = '';
+            if (!state.data || state.data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">No data matches your filters.</td></tr>`;
                 return;
             }
-
             const start = (state.currentPage - 1) * state.rowsPerPage;
             const end = start + state.rowsPerPage;
             const paginatedData = state.data.slice(start, end);
-
             paginatedData.forEach(item => tbody.appendChild(renderRowFunc(item)));
-
             const pageCount = Math.ceil(state.data.length / state.rowsPerPage);
             if (pageCount > 1) {
                 for (let i = 1; i <= pageCount; i++) {
                     const btn = document.createElement('button');
-                    btn.textContent = i;
-                    btn.className = 'btn';
+                    btn.textContent = i; btn.className = 'btn';
                     if (i === state.currentPage) btn.disabled = true;
-                    btn.addEventListener('click', () => {
-                        state.currentPage = i;
-                        renderTable(tableId, renderRowFunc, state);
-                    });
+                    btn.addEventListener('click', () => { state.currentPage = i; renderTable(tableId, renderRowFunc, state); });
                     paginationContainer.appendChild(btn);
                 }
             }
         }
-
-        // --- ROW-SPECIFIC RENDERERS ---
-        const renderStudentRow = (student) => {
-            const row = document.createElement('tr');
-            let status = 'Not Taken', statusClass = 'status-not-taken';
-            if (student.exam_taken_at) { status = 'Completed'; statusClass = 'status-completed'; }
-            else if (student.exam_started_at) { status = 'In Progress'; statusClass = 'status-in-progress'; }
-            const actionBtn = (student.exam_started_at || student.exam_taken_at) ? `<button class="btn btn-retake" data-id="${student.id}">Allow Retake</button>` : 'N/A';
-            row.innerHTML = `<td>${student.firstname} ${student.lastname}</td><td>${student.id_number}</td><td>${student.course || ''}</td><td>${student.section || ''}</td><td><span class="${statusClass}">${status}</span></td><td>${actionBtn}</td>`;
-            return row;
-        };
         
-        const renderResultRow = (result) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `<td>${result.name}</td><td>${result.course || ''}</td><td>${result.section || ''}</td><td>${result.score}/${result.totalquestions}</td><td>${result.examtitle}</td><td>${new Date(result.submissiontime).toLocaleString()}</td><td><button class="btn btn-delete" data-id="${result.id}">Delete</button></td>`;
-            return row;
-        };
+        const renderStudentRow = (s) => { const r = document.createElement('tr'); let st = 'Not Taken', sc = 'status-not-taken'; if (s.exam_taken_at) { st = 'Completed'; sc = 'status-completed'; } else if (s.exam_started_at) { st = 'In Progress'; sc = 'status-in-progress'; } const ab = (s.exam_started_at || s.exam_taken_at) ? `<button class="btn btn-retake" data-id="${s.id}">Allow Retake</button>` : 'N/A'; r.innerHTML = `<td>${s.firstname} ${s.lastname}</td><td>${s.id_number}</td><td>${s.course||''}</td><td>${s.section||''}</td><td><span class="${sc}">${st}</span></td><td>${ab}</td>`; return r; };
+        const renderResultRow = (r) => { const row = document.createElement('tr'); row.innerHTML = `<td>${r.name}</td><td>${r.course||''}</td><td>${r.section||''}</td><td>${r.score}/${r.totalquestions}</td><td>${r.examtitle}</td><td>${new Date(r.submissiontime).toLocaleString()}</td><td><button class="btn btn-delete" data-id="${r.id}">Delete</button></td>`; return row; };
+        const renderAnalysisRow = (i) => { const r = document.createElement('tr'); const sr = (i.total_attempts > 0) ? ((i.correct_answers / i.total_attempts) * 100).toFixed(1) + '%' : '0%'; r.innerHTML = `<td>${i.question_text}</td><td>${i.total_attempts}</td><td>${i.correct_answers}</td><td>${sr}</td>`; return r; };
 
-        function renderAnalysisTable(type, data) {
-            const tbody = document.getElementById(`analysis-tbody-${type}`);
-            tbody.innerHTML = '';
-            if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No analysis data available.</td></tr>`;
-                return;
-            }
-            data.forEach(item => {
-                const row = document.createElement('tr');
-                const successRate = (item.total_attempts > 0) ? ((item.correct_answers / item.total_attempts) * 100).toFixed(1) + '%' : '0%';
-                row.innerHTML = `<td>${item.question_text}</td><td>${item.total_attempts}</td><td>${item.correct_answers}</td><td>${successRate}</td>`;
-                tbody.appendChild(row);
-            });
+        function updateSummaryCards() {
+            const total = allStudents.length, completed = allStudents.filter(s => s.exam_taken_at).length;
+            document.getElementById('stat-total-students').textContent = total;
+            document.getElementById('stat-completed-exams').textContent = completed;
+            document.getElementById('stat-completion-rate').textContent = `${total > 0 ? ((completed / total) * 100).toFixed(1) : 0}%`;
         }
-        
-        function updateSummaryCards() { /* ... unchanged ... */ }
-        function getAdminKey() { if (!adminKey) adminKey = prompt('Please enter Admin Secret Key:'); return adminKey; }
 
-        // --- EVENT LISTENERS ---
+        // --- EVENT LISTENERS (REWRITTEN FOR CLARITY AND CORRECTNESS) ---
         // Tab switching
-        tabButtons.forEach(button => { button.addEventListener('click', () => { tabButtons.forEach(btn => btn.classList.remove('active')); tabContents.forEach(content => content.classList.remove('active')); button.classList.add('active'); document.getElementById(button.dataset.tab).classList.add('active'); }); });
+        document.querySelectorAll('.tab-button').forEach(b => { b.addEventListener('click', () => { document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); b.classList.add('active'); document.getElementById(b.dataset.tab).classList.add('active'); }); });
         
-        // Roster filters
+        // Roster Filters
         document.getElementById('search-students').addEventListener('input', e => { viewState.roster.filters.search = e.target.value; viewState.roster.currentPage = 1; updateRosterView(); });
         document.getElementById('roster-filter-course').addEventListener('change', e => { viewState.roster.filters.course = e.target.value; viewState.roster.currentPage = 1; updateRosterView(); });
         document.getElementById('roster-filter-section').addEventListener('change', e => { viewState.roster.filters.section = e.target.value; viewState.roster.currentPage = 1; updateRosterView(); });
+        document.getElementById('roster-filter-status').addEventListener('change', e => { viewState.roster.filters.status = e.target.value; viewState.roster.currentPage = 1; updateRosterView(); });
         document.getElementById('roster-rows-per-page').addEventListener('change', e => { viewState.roster.rowsPerPage = parseInt(e.target.value, 10); viewState.roster.currentPage = 1; updateRosterView(); });
 
-        // Results filters
+        // Results Filters
         document.getElementById('results-filter-course').addEventListener('change', e => { viewState.results.filters.course = e.target.value; viewState.results.currentPage = 1; updateResultsView(); });
         document.getElementById('results-filter-section').addEventListener('change', e => { viewState.results.filters.section = e.target.value; viewState.results.currentPage = 1; updateResultsView(); });
         document.getElementById('results-rows-per-page').addEventListener('change', e => { viewState.results.rowsPerPage = parseInt(e.target.value, 10); viewState.results.currentPage = 1; updateResultsView(); });
         
-        // Sorting listeners
+        // Analysis Filters
+        document.getElementById('analysis-ais-rows-per-page').addEventListener('change', e => { viewState.analysisAis.rowsPerPage = parseInt(e.target.value, 10); viewState.analysisAis.currentPage = 1; updateAnalysisView(); });
+        document.getElementById('analysis-nos-rows-per-page').addEventListener('change', e => { viewState.analysisNos.rowsPerPage = parseInt(e.target.value, 10); viewState.analysisNos.currentPage = 1; updateAnalysisView(); });
+
+        // Sorting Listeners
         document.querySelectorAll('.sortable').forEach(th => {
             th.addEventListener('click', () => {
                 const key = th.dataset.sortKey;
-                const state = viewState[th.closest('.tab-content').id]; // roster or results
-                if (state.sortBy === key) {
-                    state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
-                } else {
-                    state.sortBy = key;
-                    state.sortDir = 'asc';
-                }
+                const tableId = th.closest('table').id;
+                const stateKey = tableId.includes('students') ? 'roster' : 'results';
+                const state = viewState[stateKey];
+                
+                state.sortBy === key ? state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc' : (state.sortBy = key, state.sortDir = 'asc');
                 document.querySelectorAll('.sort-arrow').forEach(a => a.textContent = '');
                 th.querySelector('.sort-arrow').textContent = state.sortDir === 'asc' ? '▲' : '▼';
                 state.currentPage = 1;
-                updateAllViews();
+                stateKey === 'roster' ? updateRosterView() : updateResultsView();
             });
         });
 
-        // Event delegation for action buttons (delete, retake)
-        document.body.addEventListener('click', async (event) => { /* ... unchanged ... */ });
+        // Action Buttons Listener (Delete, Retake, Clear All)
+        document.body.addEventListener('click', async (e) => {
+            const target = e.target;
+            const action = target.classList.contains('btn-delete') ? 'delete' : target.classList.contains('btn-retake') ? 'retake' : target.id === 'clear-all-btn' ? 'clear-all' : null;
+            if (!action) return;
+            const key = adminKey || prompt('Enter Admin Key:');
+            if (!key) return; adminKey = key;
+            let endpoint, method = 'DELETE', confirmMsg = 'Are you sure?';
+            
+            if (action === 'delete') { endpoint = `${API_BASE_URL}/api/results/${target.dataset.id}`; confirmMsg = 'Delete result?'; }
+            else if (action === 'retake') { endpoint = `${API_BASE_URL}/api/students/${target.dataset.id}/reset`; method = 'PUT'; confirmMsg = 'Allow retake?'; }
+            else if (action === 'clear-all') { endpoint = `${API_BASE_URL}/api/results/all`; confirmMsg = 'DELETE ALL RESULTS?'; }
+            
+            if (!confirm(confirmMsg)) return;
+            try {
+                const res = await fetch(endpoint, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ adminKey }) });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+                alert(data.message); initializeDashboard();
+            } catch (err) { alert(`Error: ${err.message}`); adminKey = ''; }
+        });
     </script>
 </body>
 </html>
