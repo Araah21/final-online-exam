@@ -270,12 +270,10 @@
                     <label for="filter-course">Course:</label>
                     <select id="filter-course">
                         <option value="">All</option>
-                        <!-- Options will be populated by JS -->
                     </select>
                     <label for="filter-section">Section:</label>
                     <select id="filter-section">
                         <option value="">All</option>
-                        <!-- Options will be populated by JS -->
                     </select>
                     <label for="filter-status">Status:</label>
                     <select id="filter-status">
@@ -308,7 +306,15 @@
         <!-- Item Analysis Tab -->
         <div id="analysis" class="tab-content">
             <h2>Item Analysis</h2>
-            <button id="download-analysis-btn" class="btn btn-primary">Download Analysis as CSV</button>
+            <div class="controls">
+                <div class="filter-group">
+                    <label for="filter-exam-title">Filter by Subject:</label>
+                    <select id="filter-exam-title">
+                        <option value="">All Subjects</option>
+                    </select>
+                </div>
+                <button id="download-analysis-btn" class="btn btn-primary">Download Analysis as CSV</button>
+            </div>
             <table id="analysis-table">
                 <thead>
                     <tr>
@@ -325,6 +331,7 @@
 
     <script>
         let allStudents = [];
+        let allResults = [];
 
         function openTab(evt, tabName) {
             var i, tabcontent, tablinks;
@@ -341,7 +348,6 @@
         }
         
         document.addEventListener('DOMContentLoaded', () => {
-            // Set default tab
             document.querySelector('.tab-link.active').click();
             
             fetchDashboardStats();
@@ -349,12 +355,12 @@
             fetchRoster();
             fetchAnalysis();
 
-             // Roster filter event listeners
             document.getElementById('show-entries').addEventListener('change', applyRosterFilters);
             document.getElementById('filter-course').addEventListener('change', applyRosterFilters);
             document.getElementById('filter-section').addEventListener('change', applyRosterFilters);
             document.getElementById('filter-status').addEventListener('change', applyRosterFilters);
             document.getElementById('roster-search').addEventListener('input', applyRosterFilters);
+            document.getElementById('filter-exam-title').addEventListener('change', (e) => fetchAnalysis(e.target.value));
         });
 
         async function fetchDashboardStats() {
@@ -376,25 +382,30 @@
             try {
                 const response = await fetch('/api/results');
                 if (!response.ok) throw new Error('Failed to fetch results');
-                const results = await response.json();
-                const tableBody = document.querySelector('#results-table tbody');
-                tableBody.innerHTML = '';
-                results.forEach(res => {
-                    const row = `<tr>
-                        <td>${res.id}</td>
-                        <td>${res.name}</td>
-                        <td>${res.idnumber}</td>
-                        <td>${res.examtitle}</td>
-                        <td>${res.score}</td>
-                        <td>${res.totalquestions}</td>
-                        <td>${new Date(res.submissiontime).toLocaleString()}</td>
-                        <td><button class="btn btn-danger" onclick="deleteResult(${res.id})">Delete</button></td>
-                    </tr>`;
-                    tableBody.innerHTML += row;
-                });
+                allResults = await response.json();
+                displayResults(allResults);
+                populateAnalysisFilter(allResults);
             } catch (error) {
                 console.error('Error fetching results:', error);
             }
+        }
+
+        function displayResults(results) {
+            const tableBody = document.querySelector('#results-table tbody');
+            tableBody.innerHTML = '';
+            results.forEach(res => {
+                const row = `<tr>
+                    <td>${res.id}</td>
+                    <td>${res.name}</td>
+                    <td>${res.idnumber}</td>
+                    <td>${res.examtitle}</td>
+                    <td>${res.score}</td>
+                    <td>${res.totalquestions}</td>
+                    <td>${new Date(res.submissiontime).toLocaleString()}</td>
+                    <td><button class="btn btn-danger" onclick="deleteResult(${res.id})">Delete</button></td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
         }
         
         async function fetchRoster() {
@@ -413,26 +424,21 @@
             const courseFilter = document.getElementById('filter-course');
             const sectionFilter = document.getElementById('filter-section');
             
-            // Clear previous options before repopulating
             courseFilter.innerHTML = '<option value="">All</option>';
             sectionFilter.innerHTML = '<option value="">All</option>';
 
             const courses = [...new Set(students.map(s => s.course).filter(Boolean))];
             const sections = [...new Set(students.map(s => s.section).filter(Boolean))];
 
-            courses.sort().forEach(course => {
-                const option = document.createElement('option');
-                option.value = course;
-                option.textContent = course;
-                courseFilter.appendChild(option);
-            });
+            courses.sort().forEach(course => courseFilter.appendChild(new Option(course, course)));
+            sections.sort().forEach(section => sectionFilter.appendChild(new Option(section, section)));
+        }
 
-            sections.sort().forEach(section => {
-                const option = document.createElement('option');
-                option.value = section;
-                option.textContent = section;
-                sectionFilter.appendChild(option);
-            });
+        function populateAnalysisFilter(results) {
+            const examFilter = document.getElementById('filter-exam-title');
+            examFilter.innerHTML = '<option value="">All Subjects</option>';
+            const examTitles = [...new Set(results.map(r => r.examtitle).filter(Boolean))];
+            examTitles.sort().forEach(title => examFilter.appendChild(new Option(title, title)));
         }
 
         function displayRoster(students) {
@@ -452,9 +458,7 @@
                     <td>${student.course || 'N/A'}</td>
                     <td>${student.section || 'N/A'}</td>
                     <td>${status}</td>
-                    <td>
-                        <button class="btn btn-danger" onclick="resetStudent(${student.id})" ${student.exam_taken_at ? '' : 'disabled'}>Reset</button>
-                    </td>
+                    <td><button class="btn btn-danger" onclick="resetStudent(${student.id})" ${student.exam_taken_at ? '' : 'disabled'}>Reset</button></td>
                 </tr>`;
                 tableBody.innerHTML += row;
             });
@@ -469,47 +473,47 @@
             let filteredStudents = allStudents.filter(student => {
                 const matchesCourse = !course || student.course === course;
                 const matchesSection = !section || student.section === section;
-                
                 const hasTaken = !!student.exam_taken_at;
                 const matchesStatus = !status || (status === 'taken' && hasTaken) || (status === 'not_taken' && !hasTaken);
-
-                const matchesSearch = !searchTerm || 
-                                      student.firstname.toLowerCase().includes(searchTerm) ||
-                                      student.lastname.toLowerCase().includes(searchTerm) ||
-                                      student.id_number.toLowerCase().includes(searchTerm);
-
+                const matchesSearch = !searchTerm || student.firstname.toLowerCase().includes(searchTerm) || student.lastname.toLowerCase().includes(searchTerm) || student.id_number.toLowerCase().includes(searchTerm);
                 return matchesCourse && matchesSection && matchesStatus && matchesSearch;
             });
-
             displayRoster(filteredStudents);
         }
 
-        async function fetchAnalysis() {
-             try {
-                const response = await fetch('/api/analysis');
-                 if (!response.ok) throw new Error('Failed to fetch analysis');
+        async function fetchAnalysis(examTitle = '') {
+            try {
+                const url = new URL('/api/analysis', window.location.origin);
+                if (examTitle) {
+                    url.searchParams.append('examTitle', examTitle);
+                }
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to fetch analysis');
                 const analysisData = await response.json();
-                const tableBody = document.querySelector('#analysis-table tbody');
-                tableBody.innerHTML = '';
-                analysisData.forEach(item => {
-                    const successRate = (item.correct_answers / item.total_attempts * 100).toFixed(2);
-                    const row = `<tr>
-                        <td>${item.question_text}</td>
-                        <td>${item.total_attempts}</td>
-                        <td>${item.correct_answers}</td>
-                        <td>${successRate}%</td>
-                    </tr>`;
-                    tableBody.innerHTML += row;
-                });
+                displayAnalysis(analysisData);
             } catch (error) {
                 console.error('Error fetching analysis:', error);
             }
+        }
+
+        function displayAnalysis(analysisData) {
+            const tableBody = document.querySelector('#analysis-table tbody');
+            tableBody.innerHTML = '';
+            analysisData.forEach(item => {
+                const successRate = (item.correct_answers / item.total_attempts * 100).toFixed(2);
+                const row = `<tr>
+                    <td>${item.question_text}</td>
+                    <td>${item.total_attempts}</td>
+                    <td>${item.correct_answers}</td>
+                    <td>${successRate}%</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
         }
         
         async function deleteResult(id) {
             const adminKey = prompt("Please enter the admin key to confirm deletion:");
             if (!adminKey) return;
-
             try {
                 const response = await fetch(`/api/results/${id}`, {
                     method: 'DELETE',
@@ -520,6 +524,7 @@
                 alert(data.message);
                 if (response.ok) {
                     fetchResults();
+                    fetchDashboardStats();
                 }
             } catch (error) {
                 console.error('Error deleting result:', error);
@@ -530,7 +535,6 @@
         async function resetStudent(id) {
             const adminKey = prompt("Please enter the admin key to confirm reset:");
             if (!adminKey) return;
-
             try {
                 const response = await fetch(`/api/students/${id}/reset`, {
                     method: 'PUT',
@@ -552,7 +556,6 @@
         document.getElementById('clear-results-btn').addEventListener('click', async () => {
              const adminKey = prompt("This will delete all exam results permanently. Enter the admin key to confirm:");
              if (!adminKey) return;
-
              try {
                  const response = await fetch('/api/results/all', {
                      method: 'DELETE',
@@ -576,7 +579,12 @@
         });
         
         document.getElementById('download-analysis-btn').addEventListener('click', () => {
-            window.location.href = '/api/analysis/download';
+            const examTitle = document.getElementById('filter-exam-title').value;
+            const url = new URL('/api/analysis/download', window.location.origin);
+            if (examTitle) {
+                url.searchParams.append('examTitle', examTitle);
+            }
+            window.location.href = url.toString();
         });
 
     </script>

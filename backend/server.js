@@ -328,9 +328,38 @@ app.get('/api/results', authenticateAdmin, async (req, res) => {
 });
 
 app.get('/api/analysis', authenticateAdmin, async (req, res) => {
-    const query = `SELECT question_text, COUNT(*) AS total_attempts, SUM(CASE WHEN is_correct = true THEN 1 ELSE 0 END) AS correct_answers FROM student_answers GROUP BY question_text ORDER BY total_attempts DESC;`;
-    const { rows } = await pool.query(query);
-    res.json(rows);
+    const { examTitle } = req.query;
+    let query;
+    const params = [];
+
+    if (examTitle) {
+        query = `
+            SELECT sa.question_text, COUNT(*) AS total_attempts, 
+                   SUM(CASE WHEN sa.is_correct = true THEN 1 ELSE 0 END) AS correct_answers 
+            FROM student_answers sa
+            JOIN results r ON sa.result_id = r.id
+            WHERE r.examtitle = $1
+            GROUP BY sa.question_text 
+            ORDER BY total_attempts DESC;
+        `;
+        params.push(examTitle);
+    } else {
+        query = `
+            SELECT question_text, COUNT(*) AS total_attempts, 
+                   SUM(CASE WHEN is_correct = true THEN 1 ELSE 0 END) AS correct_answers 
+            FROM student_answers 
+            GROUP BY question_text 
+            ORDER BY total_attempts DESC;
+        `;
+    }
+
+    try {
+        const { rows } = await pool.query(query, params);
+        res.json(rows);
+    } catch (err) {
+        console.error('Error fetching analysis data:', err);
+        res.status(500).json({ message: 'Failed to fetch analysis data' });
+    }
 });
 
 app.delete('/api/results/all', authenticateAdmin, async (req, res) => {
@@ -356,15 +385,48 @@ app.get('/download-results', authenticateAdmin, async (req, res) => {
 });
 
 app.get('/api/analysis/download', authenticateAdmin, async (req, res) => {
-    const query = `SELECT question_text, COUNT(*) AS total_attempts, SUM(CASE WHEN is_correct = true THEN 1 ELSE 0 END) AS correct_answers, (SUM(CASE WHEN is_correct = true THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS success_rate_percent FROM student_answers GROUP BY question_text ORDER BY total_attempts DESC;`;
-    const { rows } = await pool.query(query);
-    const formattedRows = rows.map(row => ({
-        Question: row.question_text, 'Total Attempts': row.total_attempts,
-        'Correct Answers': row.correct_answers, 'Success Rate (%)': parseFloat(row.success_rate_percent).toFixed(2)
-    }));
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename="exam_question_analysis.csv"');
-    res.status(200).send(Papa.unparse(formattedRows));
+    const { examTitle } = req.query;
+    let query;
+    const params = [];
+
+    if (examTitle) {
+        query = `
+            SELECT sa.question_text, COUNT(*) AS total_attempts, 
+                   SUM(CASE WHEN sa.is_correct = true THEN 1 ELSE 0 END) AS correct_answers,
+                   (SUM(CASE WHEN sa.is_correct = true THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS success_rate_percent
+            FROM student_answers sa
+            JOIN results r ON sa.result_id = r.id
+            WHERE r.examtitle = $1
+            GROUP BY sa.question_text 
+            ORDER BY total_attempts DESC;
+        `;
+        params.push(examTitle);
+    } else {
+        query = `
+            SELECT question_text, COUNT(*) AS total_attempts, 
+                   SUM(CASE WHEN is_correct = true THEN 1 ELSE 0 END) AS correct_answers,
+                   (SUM(CASE WHEN is_correct = true THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS success_rate_percent
+            FROM student_answers 
+            GROUP BY question_text 
+            ORDER BY total_attempts DESC;
+        `;
+    }
+
+    try {
+        const { rows } = await pool.query(query, params);
+        const formattedRows = rows.map(row => ({
+            Question: row.question_text,
+            'Total Attempts': row.total_attempts,
+            'Correct Answers': row.correct_answers,
+            'Success Rate (%)': parseFloat(row.success_rate_percent).toFixed(2)
+        }));
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="exam_analysis_${examTitle || 'all'}.csv"`);
+        res.status(200).send(Papa.unparse(formattedRows));
+    } catch (err) {
+        console.error('Error generating analysis CSV:', err);
+        res.status(500).send('Failed to generate analysis CSV');
+    }
 });
 
 app.listen(PORT, () => console.log(`Backend server is running on port ${PORT}`));
