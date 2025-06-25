@@ -277,7 +277,7 @@ app.get('/admin', authenticateAdmin, (req, res) => res.sendFile(path.join(__dirn
 
 app.get('/api/students', authenticateAdmin, async (req, res) => {
     // Select the new column so the frontend can use it
-    const { rows } = await pool.query('SELECT id, firstname, lastname, id_number, exam_started_at, exam_taken_at FROM students ORDER BY lastname, firstname');
+    const { rows } = await pool.query('SELECT id, firstname, lastname, id_number, course, section, exam_started_at, exam_taken_at FROM students ORDER BY lastname, firstname');
     res.json(rows);
 });
 

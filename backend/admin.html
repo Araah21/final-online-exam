@@ -2,433 +2,488 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Admin Dashboard</title>
-    
+    <title>Admin Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <title>Exam Admin Dashboard</title>
     <style>
-          :root {
-        --primary-color: #0056b3;
-        --success-color: #218838;
-        --danger-color: #c82333;
-        --warning-color: #e0a800;
-        --info-color: #138496;
-        --light-gray: #f8f9fa;
-        --medium-gray: #dee2e6;
-        --dark-gray: #343a40;
-        --white: #fff;
-    }
-    body {
-        font-family: 'Poppins', sans-serif;
-        line-height: 1.7;
-        background-color: var(--light-gray);
-        color: #212529;
-        margin: 0;
-        padding: 20px;
-        font-size: 16px;
-    }
-    .container {
-        max-width: 1400px;
-        margin: auto;
-    }
-    h1, h2 {
-        color: var(--dark-gray);
-        border-bottom: 1px solid var(--medium-gray);
-        padding-bottom: 10px;
-        font-weight: 600;
-    }
-    h1 {
-         font-size: 2rem;
-         border-bottom-width: 2px;
-         border-bottom-color: var(--primary-color);
-         margin-bottom: 20px;
-    }
-    h2 { font-size: 1.5rem; }
-    .card-deck {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
-    }
-    .card {
-        background: var(--white);
-        padding: 25px;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        text-align: center;
-    }
-    .card h3 {
-        margin-top: 0;
-        font-size: 1.1rem;
-        color: #6c757d;
-        font-weight: 500;
-    }
-    .card .stat {
-        font-size: 2.75rem;
-        font-weight: 700;
-        color: var(--primary-color);
-    }
-    .tabs {
-        display: flex;
-        border-bottom: 1px solid var(--medium-gray);
-        margin-bottom: 20px;
-    }
-    .tab-button {
-        background: none;
-        border: none;
-        padding: 12px 25px;
-        font-size: 1.1rem;
-        font-family: 'Poppins', sans-serif;
-        cursor: pointer;
-        border-bottom: 3px solid transparent;
-        font-weight: 500;
-    }
-    .tab-button.active {
-        border-bottom-color: var(--primary-color);
-        font-weight: 600;
-        color: var(--primary-color);
-    }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    .table-container {
-        background: var(--white);
-        padding: 25px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-    }
-    .table-wrapper { overflow-x: auto; }
-    .controls { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-    .search-box {
-        padding: 12px;
-        font-size: 1rem;
-        font-family: 'Poppins', sans-serif;
-        border: 1px solid var(--medium-gray);
-        border-radius: 5px;
-        width: 300px;
-    }
-    .status-in-progress { color: var(--warning-color); font-weight: 600; }
-    .btn { padding: 12px 20px; font-size: 1rem; cursor: pointer; text-decoration: none; color: var(--white); border: none; border-radius: 5px; transition: all 0.2s ease; font-family: 'Poppins', sans-serif; font-weight: 500; }
-    .btn:active { transform: translateY(1px); }
-    .btn-download { background-color: var(--success-color); }
-    .btn-clear { background-color: var(--danger-color); }
-    .btn-delete { background-color: var(--warning-color); color: #212529; font-size: 0.9rem; }
-    .btn-retake { background-color: var(--info-color); font-size: 0.9rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 1rem; }
-    th, td { padding: 14px; border: 1px solid var(--medium-gray); text-align: left; white-space: nowrap; }
-    th { background-color: var(--light-gray); font-weight: 600; }
-    .pagination { margin-top: 20px; text-align: center; }
-    .pagination button { margin: 0 5px; }
-    .status-completed { color: var(--success-color); font-weight: 600; }
-    .status-not-taken { color: #6c757d; }
-    .loader { text-align: center; padding: 40px; font-size: 1.2rem; color: #6c757d; }
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #007bff;
+            --light-gray: #f8f9fa;
+            --dark-gray: #343a40;
+            --white: #fff;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+        }
 
-    @media (max-width: 768px) {
-        body { padding: 10px; }
-        h1 { font-size: 1.6rem; }
-        h2 { font-size: 1.3rem; }
-        .card-deck { grid-template-columns: 1fr; }
-        .tabs { flex-wrap: wrap; }
-        .tab-button { flex-grow: 1; font-size: 1rem; padding: 10px; }
-        .table-container { padding: 15px; }
-        .controls { flex-direction: column; align-items: stretch; }
-        .search-box { width: 100%; box-sizing: border-box; }
-        th, td { padding: 10px; }
-    }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-gray);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            color: var(--dark-gray);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .tab-link {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--primary-color);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab-link.active {
+            border-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #dee2e6;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: #e9ecef;
+            font-weight: 600;
+        }
+
+        tbody tr:nth-of-type(even) {
+            background-color: var(--light-gray);
+        }
+
+        .btn {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .btn-primary {
+             background-color: var(--primary-color);
+             color: var(--white);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+        }
+
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Exam Admin Dashboard</h1>
 
-        <div class="card-deck" id="summary-cards">
-            <div class="card">
-                <h3>Total Students</h3>
-                <div class="stat" id="stat-total-students">...</div>
-            </div>
-            <div class="card">
-                <h3>Exams Completed</h3>
-                <div class="stat" id="stat-completed-exams">...</div>
-            </div>
-            <div class="card">
-                <h3>Completion Rate</h3>
-                <div class="stat" id="stat-completion-rate">...%</div>
-            </div>
-        </div>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
 
         <div class="tabs">
-            <button class="tab-button active" data-tab="roster">Student Roster</button>
-            <button class="tab-button" data-tab="results">Exam Results</button>
-            <button class="tab-button" data-tab="analysis">Question Analysis</button>
+            <button class="tab-link active" onclick="openTab(event, 'results')">Exam Results</button>
+            <button class="tab-link" onclick="openTab(event, 'roster')">Student Roster</button>
+            <button class="tab-link" onclick="openTab(event, 'analysis')">Item Analysis</button>
         </div>
 
-        <div id="roster" class="tab-content active">
-            <div class="table-container">
-                <h2>Student Roster & Status</h2>
-                <div class="controls">
-                    <button class="btn" id="filter-completed">Show Completed</button>
-                    <button class="btn" id="filter-not-taken">Show Not Taken</button>
-                    <input type="search" id="search-students" class="search-box" placeholder="Search by name or ID...">
+        <!-- Exam Results Tab -->
+        <div id="results" class="tab-content active">
+            <h2>Exam Results</h2>
+            <button id="download-results-btn" class="btn btn-primary">Download Results as CSV</button>
+            <button id="clear-results-btn" class="btn btn-danger">Clear All Results</button>
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>ID Number</th>
+                        <th>Exam Title</th>
+                        <th>Score</th>
+                        <th>Total</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Student Roster Tab -->
+        <div id="roster" class="tab-content">
+            <h2>Student Roster</h2>
+            <div class="controls">
+                <div class="filter-group">
+                    <label for="show-entries">Show</label>
+                    <select id="show-entries">
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <label>entries</label>
                 </div>
-                <table id="students-table">
-                    <thead><tr><th>Student Name</th><th>ID Number</th><th>Exam Status</th><th>Action</th></tr></thead>
-                    <tbody id="students-tbody"></tbody>
-                </table>
-                <div class="pagination" id="students-pagination"></div>
-            </div>
-        </div>
-
-        <div id="results" class="tab-content">
-            <div class="table-container">
-                <h2>Exam Results</h2>
-                <div class="controls">
-                    <a href="/download-results" class="btn btn-download">Download All as CSV</a>
-                    <button id="clear-all-btn" class="btn btn-clear">Clear All Results</button>
+                <div class="filter-group">
+                    <label for="filter-course">Course:</label>
+                    <select id="filter-course">
+                        <option value="">All</option>
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <label for="filter-section">Section:</label>
+                    <select id="filter-section">
+                        <option value="">All</option>
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <label for="filter-status">Status:</label>
+                    <select id="filter-status">
+                        <option value="">All</option>
+                        <option value="taken">Taken</option>
+                        <option value="not_taken">Not Taken</option>
+                    </select>
                 </div>
-                <table id="results-table">
-                    <thead><tr><th>Result ID</th><th>Name</th><th>ID Number</th><th>Exam Title</th><th>Score</th><th>Submitted At</th><th>Action</th></tr></thead>
-                    <tbody id="results-tbody"></tbody>
-                </table>
-                 <div class="pagination" id="results-pagination"></div>
+                 <div class="filter-group">
+                    <input type="text" id="roster-search" placeholder="Search by name or ID...">
+                </div>
             </div>
+            <table id="roster-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Last Name</th>
+                        <th>First Name</th>
+                        <th>ID Number</th>
+                        <th>Course</th>
+                        <th>Section</th>
+                        <th>Exam Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
 
+        <!-- Item Analysis Tab -->
         <div id="analysis" class="tab-content">
-            <div class="table-container">
-                <h2>Question Performance Analysis</h2>
-                 <div class="controls">
-                    <a href="/api/analysis/download" class="btn btn-download">Download Analysis as CSV</a>
-                </div>
-                <table id="analysis-table">
-                    <thead><tr><th>Question</th><th>Total Attempts</th><th>Correct Answers</th><th>Success Rate</th></tr></thead>
-                    <tbody id="analysis-tbody"></tbody>
-                </table>
-                 <div class="pagination" id="analysis-pagination"></div>
-            </div>
+            <h2>Item Analysis</h2>
+            <button id="download-analysis-btn" class="btn btn-primary">Download Analysis as CSV</button>
+            <table id="analysis-table">
+                <thead>
+                    <tr>
+                        <th>Question</th>
+                        <th>Total Attempts</th>
+                        <th>Correct Answers</th>
+                        <th>Success Rate (%)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        // --- STATE MANAGEMENT ---
         let allStudents = [];
-        let allResults = [];
-        let allAnalysis = [];
-        let adminKey = '';
-        const rowsPerPage = 10;
 
-        // --- DOM ELEMENTS ---
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
         
-        // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', initializeDashboard);
-        
-        async function initializeDashboard() {
-            // Show loading state
-            document.getElementById('students-tbody').innerHTML = `<tr><td colspan="4" class="loader">Loading Students...</td></tr>`;
-            document.getElementById('results-tbody').innerHTML = `<tr><td colspan="7" class="loader">Loading Results...</td></tr>`;
-            document.getElementById('analysis-tbody').innerHTML = `<tr><td colspan="4" class="loader">Loading Analysis...</td></tr>`;
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set default tab
+            document.querySelector('.tab-link.active').click();
 
+            fetchResults();
+            fetchRoster();
+            fetchAnalysis();
+
+             // Roster filter event listeners
+            document.getElementById('show-entries').addEventListener('change', applyRosterFilters);
+            document.getElementById('filter-course').addEventListener('change', applyRosterFilters);
+            document.getElementById('filter-section').addEventListener('change', applyRosterFilters);
+            document.getElementById('filter-status').addEventListener('change', applyRosterFilters);
+            document.getElementById('roster-search').addEventListener('input', applyRosterFilters);
+        });
+        
+        async function fetchResults() {
             try {
-                const [studentsRes, resultsRes, analysisRes] = await Promise.all([
-                    fetch('/api/students'),
-                    fetch('/api/results'),
-                    fetch('/api/analysis')
-                ]);
-
-                allStudents = await studentsRes.json();
-                allResults = await resultsRes.json();
-                allAnalysis = await analysisRes.json();
-
-                updateSummaryCards();
-                renderStudentsTable(allStudents.filter(s => s.exam_taken_at)); // Default to showing completed
-                renderResultsTable();
-                renderAnalysisTable();
+                const response = await fetch('/api/results');
+                if (!response.ok) throw new Error('Failed to fetch results');
+                const results = await response.json();
+                const tableBody = document.querySelector('#results-table tbody');
+                tableBody.innerHTML = '';
+                results.forEach(res => {
+                    const row = `<tr>
+                        <td>${res.id}</td>
+                        <td>${res.name}</td>
+                        <td>${res.idnumber}</td>
+                        <td>${res.examtitle}</td>
+                        <td>${res.score}</td>
+                        <td>${res.totalquestions}</td>
+                        <td>${new Date(res.submissiontime).toLocaleString()}</td>
+                        <td><button class="btn btn-danger" onclick="deleteResult(${res.id})">Delete</button></td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
             } catch (error) {
-                console.error("Failed to initialize dashboard:", error);
-                alert("Failed to load dashboard data. Please check the server logs and refresh.");
+                console.error('Error fetching results:', error);
+            }
+        }
+        
+        async function fetchRoster() {
+            try {
+                const response = await fetch('/api/students');
+                 if (!response.ok) throw new Error('Failed to fetch students');
+                allStudents = await response.json();
+                populateRosterFilters(allStudents);
+                displayRoster(allStudents);
+            } catch (error) {
+                console.error('Error fetching roster:', error);
             }
         }
 
-        // --- RENDER FUNCTIONS ---
-        function renderTable(tableId, data, renderRowFunc, page = 1) {
-            const tbody = document.getElementById(`${tableId}-tbody`);
-            const paginationContainer = document.getElementById(`${tableId}-pagination`);
-            tbody.innerHTML = '';
-            paginationContainer.innerHTML = '';
-
-            if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">No data to display.</td></tr>`;
-                return;
-            }
-
-            const start = (page - 1) * rowsPerPage;
-            const end = start + rowsPerPage;
-            const paginatedData = data.slice(start, end);
-
-            paginatedData.forEach(item => tbody.appendChild(renderRowFunc(item)));
-
-            // Render pagination
-            const pageCount = Math.ceil(data.length / rowsPerPage);
-            if (pageCount > 1) {
-                for (let i = 1; i <= pageCount; i++) {
-                    const btn = document.createElement('button');
-                    btn.textContent = i;
-                    btn.className = 'btn';
-                    if (i === page) btn.disabled = true;
-                    btn.addEventListener('click', () => renderTable(tableId, data, renderRowFunc, i));
-                    paginationContainer.appendChild(btn);
-                }
-            }
-        }
-
-       function renderStudentsTable(filteredStudents, page = 1) {
-    const renderStudentRow = (student) => {
-        const row = document.createElement('tr');
-        
-        let status;
-        let statusClass;
-        
-        if (student.exam_taken_at) {
-            status = 'Completed';
-            statusClass = 'status-completed';
-        } else if (student.exam_started_at) {
-            status = 'In Progress';
-            statusClass = 'status-in-progress'; // You can add CSS for this, e.g., a warning color
-        } else {
-            status = 'Not Taken';
-            statusClass = 'status-not-taken';
-        }
-        
-        // The action button is only needed if the exam has been started or completed
-        const actionButton = (student.exam_started_at || student.exam_taken_at) 
-            ? `<button class="btn btn-retake" data-id="${student.id}">Allow Retake</button>` 
-            : 'N/A';
-
-        row.innerHTML = `<td>${student.firstname} ${student.lastname}</td><td>${student.id_number}</td><td><span class="${statusClass}">${status}</span></td><td>${actionButton}</td>`;
-        return row;
-    };
-    renderTable('students', filteredStudents, renderStudentRow, page);
-}
-
-// OPTIONAL: To make the "In Progress" status stand out, add this CSS rule to admin.html
-// Inside the <style> tag in admin.html, add this:
-/*
-.status-in-progress { color: var(--warning-color); font-weight: 600; }
-*/
-        
-        function renderResultsTable(page = 1) {
-            const renderResultRow = (result) => {
-                const row = document.createElement('tr');
-                const submittedAt = new Date(result.submissiontime).toLocaleString();
-                row.innerHTML = `<td>${result.id}</td><td>${result.name}</td><td>${result.idnumber}</td><td>${result.examtitle}</td><td>${result.score} / ${result.totalquestions}</td><td>${submittedAt}</td><td><button class="btn btn-delete" data-id="${result.id}">Delete</button></td>`;
-                return row;
-            };
-            renderTable('results', allResults, renderResultRow, page);
-        }
-
-        function renderAnalysisTable(page = 1) {
-             const renderAnalysisRow = (item) => {
-                const row = document.createElement('tr');
-                const successRate = (item.total_attempts > 0) ? ((item.correct_answers / item.total_attempts) * 100).toFixed(1) + '%' : '0%';
-                row.innerHTML = `<td>${item.question_text}</td><td>${item.total_attempts}</td><td>${item.correct_answers}</td><td>${successRate}</td>`;
-                return row;
-            };
-            renderTable('analysis', allAnalysis, renderAnalysisRow, page);
-        }
-
-        // --- UTILITY FUNCTIONS ---
-        function updateSummaryCards() {
-            const totalStudents = allStudents.length;
-            const completedExams = allStudents.filter(s => s.exam_taken_at).length;
-            const completionRate = totalStudents > 0 ? ((completedExams / totalStudents) * 100).toFixed(1) : 0;
-
-            document.getElementById('stat-total-students').textContent = totalStudents;
-            document.getElementById('stat-completed-exams').textContent = completedExams;
-            document.getElementById('stat-completion-rate').textContent = `${completionRate}%`;
-        }
-
-        function getAdminKey() {
-            if (!adminKey) adminKey = prompt('Please enter the Admin Secret Key:');
-            return adminKey;
-        }
-
-        // --- EVENT LISTENERS ---
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-                button.classList.add('active');
-                document.getElementById(button.dataset.tab).classList.add('active');
-            });
-        });
-
-        document.getElementById('filter-completed').addEventListener('click', () => renderStudentsTable(allStudents.filter(s => s.exam_taken_at)));
-        document.getElementById('filter-not-taken').addEventListener('click', () => renderStudentsTable(allStudents.filter(s => !s.exam_taken_at)));
-        
-        document.getElementById('search-students').addEventListener('keyup', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const filtered = allStudents.filter(s => 
-                s.firstname.toLowerCase().includes(searchTerm) ||
-                s.lastname.toLowerCase().includes(searchTerm) ||
-                s.id_number.includes(searchTerm)
-            );
-            renderStudentsTable(filtered);
-        });
-
-        // Event delegation for action buttons
-        document.body.addEventListener('click', async (event) => {
-            const target = event.target;
-            const action = target.classList.contains('btn-delete') ? 'delete-result' : 
-                           target.classList.contains('btn-retake') ? 'allow-retake' : 
-                           target.id === 'clear-all-btn' ? 'clear-all' : null;
-            if (!action) return;
-
-            let confirmMessage, endpoint, method, successMessage;
-            const resultId = target.dataset.id;
+        function populateRosterFilters(students) {
+            const courseFilter = document.getElementById('filter-course');
+            const sectionFilter = document.getElementById('filter-section');
             
-            switch (action) {
-                case 'delete-result':
-                    confirmMessage = `Are you sure you want to delete result ID #${resultId}?`;
-                    endpoint = `/api/results/${resultId}`;
-                    method = 'DELETE';
-                    break;
-                case 'allow-retake':
-                    confirmMessage = `Are you sure you want to allow student ID #${resultId} to retake the exam?`;
-                    endpoint = `/api/students/${resultId}/reset`;
-                    method = 'PUT';
-                    break;
-                case 'clear-all':
-                    confirmMessage = 'ARE YOU SURE you want to delete ALL exam results? This action cannot be undone.';
-                    endpoint = '/api/results/all';
-                    method = 'DELETE';
-                    break;
-            }
+            // Clear previous options before repopulating
+            courseFilter.innerHTML = '<option value="">All</option>';
+            sectionFilter.innerHTML = '<option value="">All</option>';
 
-            if (!confirm(confirmMessage)) return;
-            const key = getAdminKey();
-            if (!key) return;
+            const courses = [...new Set(students.map(s => s.course).filter(Boolean))];
+            const sections = [...new Set(students.map(s => s.section).filter(Boolean))];
+
+            courses.sort().forEach(course => {
+                const option = document.createElement('option');
+                option.value = course;
+                option.textContent = course;
+                courseFilter.appendChild(option);
+            });
+
+            sections.sort().forEach(section => {
+                const option = document.createElement('option');
+                option.value = section;
+                option.textContent = section;
+                sectionFilter.appendChild(option);
+            });
+        }
+
+        function displayRoster(students) {
+            const tableBody = document.querySelector('#roster-table tbody');
+            const entries = parseInt(document.getElementById('show-entries').value, 10);
+            tableBody.innerHTML = '';
+            
+            const studentsToDisplay = students.slice(0, entries);
+
+            studentsToDisplay.forEach(student => {
+                const status = student.exam_taken_at ? `<span style="color:var(--success-color);">Taken</span>` : `<span style="color:var(--danger-color);">Not Taken</span>`;
+                const row = `<tr>
+                    <td>${student.id}</td>
+                    <td>${student.lastname}</td>
+                    <td>${student.firstname}</td>
+                    <td>${student.id_number}</td>
+                    <td>${student.course || 'N/A'}</td>
+                    <td>${student.section || 'N/A'}</td>
+                    <td>${status}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="resetStudent(${student.id})" ${student.exam_taken_at ? '' : 'disabled'}>Reset</button>
+                    </td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        function applyRosterFilters() {
+            const course = document.getElementById('filter-course').value;
+            const section = document.getElementById('filter-section').value;
+            const status = document.getElementById('filter-status').value;
+            const searchTerm = document.getElementById('roster-search').value.toLowerCase();
+
+            let filteredStudents = allStudents.filter(student => {
+                const matchesCourse = !course || student.course === course;
+                const matchesSection = !section || student.section === section;
+                
+                const hasTaken = !!student.exam_taken_at;
+                const matchesStatus = !status || (status === 'taken' && hasTaken) || (status === 'not_taken' && !hasTaken);
+
+                const matchesSearch = !searchTerm || 
+                                      student.firstname.toLowerCase().includes(searchTerm) ||
+                                      student.lastname.toLowerCase().includes(searchTerm) ||
+                                      student.id_number.toLowerCase().includes(searchTerm);
+
+                return matchesCourse && matchesSection && matchesStatus && matchesSearch;
+            });
+
+            displayRoster(filteredStudents);
+        }
+
+        async function fetchAnalysis() {
+             try {
+                const response = await fetch('/api/analysis');
+                 if (!response.ok) throw new Error('Failed to fetch analysis');
+                const analysisData = await response.json();
+                const tableBody = document.querySelector('#analysis-table tbody');
+                tableBody.innerHTML = '';
+                analysisData.forEach(item => {
+                    const successRate = (item.correct_answers / item.total_attempts * 100).toFixed(2);
+                    const row = `<tr>
+                        <td>${item.question_text}</td>
+                        <td>${item.total_attempts}</td>
+                        <td>${item.correct_answers}</td>
+                        <td>${successRate}%</td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Error fetching analysis:', error);
+            }
+        }
+        
+        async function deleteResult(id) {
+            const adminKey = prompt("Please enter the admin key to confirm deletion:");
+            if (!adminKey) return;
 
             try {
-                const response = await fetch(endpoint, {
-                    method: method,
+                const response = await fetch(`/api/results/${id}`, {
+                    method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ adminKey: key })
+                    body: JSON.stringify({ adminKey })
                 });
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.message);
                 alert(data.message);
-                initializeDashboard(); // Refresh all data
+                if (response.ok) {
+                    fetchResults();
+                }
             } catch (error) {
-                alert(`Error: ${error.message}`);
-                adminKey = ''; // Clear key on failure
+                console.error('Error deleting result:', error);
+                alert('An error occurred during deletion.');
             }
+        }
+
+        async function resetStudent(id) {
+            const adminKey = prompt("Please enter the admin key to confirm reset:");
+            if (!adminKey) return;
+
+            try {
+                const response = await fetch(`/api/students/${id}/reset`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminKey })
+                });
+                const data = await response.json();
+                alert(data.message);
+                if (response.ok) {
+                    fetchRoster();
+                }
+            } catch (error) {
+                console.error('Error resetting student:', error);
+                alert('An error occurred during reset.');
+            }
+        }
+        
+        document.getElementById('clear-results-btn').addEventListener('click', async () => {
+             const adminKey = prompt("This will delete all exam results permanently. Enter the admin key to confirm:");
+             if (!adminKey) return;
+
+             try {
+                 const response = await fetch('/api/results/all', {
+                     method: 'DELETE',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({ adminKey })
+                 });
+                 const data = await response.json();
+                 alert(data.message);
+                 if (response.ok) {
+                     fetchResults();
+                 }
+             } catch (error) {
+                 console.error('Error clearing results:', error);
+                 alert('An error occurred.');
+             }
         });
+
+        document.getElementById('download-results-btn').addEventListener('click', () => {
+            window.location.href = '/download-results';
+        });
+        
+        document.getElementById('download-analysis-btn').addEventListener('click', () => {
+            window.location.href = '/api/analysis/download';
+        });
+
     </script>
 </body>
 </html>
