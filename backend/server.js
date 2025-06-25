@@ -275,6 +275,39 @@ app.post('/api/admin/login', async (req, res) => {
 app.get('/', (req, res) => res.redirect('/admin'));
 app.get('/admin', authenticateAdmin, (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
+app.get('/api/dashboard-stats', authenticateAdmin, async (req, res) => {
+    try {
+        const totalStudentsRes = await pool.query('SELECT COUNT(*) FROM students');
+        const examsTakenRes = await pool.query('SELECT COUNT(*) FROM students WHERE exam_taken_at IS NOT NULL');
+        
+        // Calculate average score as a percentage
+        const averageScoreRes = await pool.query('SELECT AVG(score * 100.0 / totalquestions) as avg_score FROM results');
+        
+        // Calculate pass rate (assuming passing is >= 50%)
+        const totalResultsRes = await pool.query('SELECT COUNT(*) FROM results');
+        const passingResultsRes = await pool.query('SELECT COUNT(*) FROM results WHERE (score * 100.0 / totalquestions) >= 50');
+
+        const totalStudents = parseInt(totalStudentsRes.rows[0].count, 10);
+        const examsTaken = parseInt(examsTakenRes.rows[0].count, 10);
+        const averageScore = parseFloat(averageScoreRes.rows[0].avg_score || 0);
+        
+        const totalResults = parseInt(totalResultsRes.rows[0].count, 10);
+        const passingResults = parseInt(passingResultsRes.rows[0].count, 10);
+        const passRate = totalResults > 0 ? (passingResults / totalResults) * 100 : 0;
+
+        res.json({
+            totalStudents,
+            examsTaken,
+            averageScore,
+            passRate
+        });
+
+    } catch (err) {
+        console.error("Error fetching dashboard stats:", err);
+        res.status(500).json({ message: "Server error fetching dashboard stats." });
+    }
+});
+
 app.get('/api/students', authenticateAdmin, async (req, res) => {
     // Select the new column so the frontend can use it
     const { rows } = await pool.query('SELECT id, firstname, lastname, id_number, course, section, exam_started_at, exam_taken_at FROM students ORDER BY lastname, firstname');

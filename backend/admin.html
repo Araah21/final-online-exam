@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.4/css/boxicons.min.css" rel="stylesheet">
+
     <style>
         :root {
             --primary-color: #0056b3;
@@ -38,6 +40,50 @@
             color: var(--dark-gray);
             text-align: center;
             margin-bottom: 30px;
+        }
+
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: var(--white);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            padding: 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-icon.students { background-color: #e7f0ff; color: #4a7dff; }
+        .card-icon.taken { background-color: #e5f8f0; color: #28a745; }
+        .card-icon.average { background-color: #fff4e5; color: #ff9f0a; }
+        .card-icon.pass-rate { background-color: #e8eaf6; color: #5c6bc0; }
+
+
+        .card-info .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark-gray);
+        }
+
+        .card-info .card-label {
+            font-size: 1rem;
+            color: #6c757d;
         }
 
         .tabs {
@@ -147,6 +193,37 @@
 
     <div class="container">
         <h1>Admin Dashboard</h1>
+
+        <div class="stats-container">
+            <div class="card">
+                <div class="card-icon students"><i class='bx bxs-user-detail'></i></div>
+                <div class="card-info">
+                    <div id="total-students" class="card-value">0</div>
+                    <div class="card-label">Total Students</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon taken"><i class='bx bx-task'></i></div>
+                <div class="card-info">
+                    <div id="exams-taken" class="card-value">0 / 0</div>
+                    <div class="card-label">Exams Taken</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon average"><i class='bx bxs-bar-chart-alt-2'></i></div>
+                <div class="card-info">
+                    <div id="average-score" class="card-value">0%</div>
+                    <div class="card-label">Average Score</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon pass-rate"><i class='bx bxs-user-check'></i></div>
+                <div class="card-info">
+                    <div id="pass-rate" class="card-value">0%</div>
+                    <div class="card-label">Pass Rate</div>
+                </div>
+            </div>
+        </div>
 
         <div class="tabs">
             <button class="tab-link active" onclick="openTab(event, 'results')">Exam Results</button>
@@ -266,7 +343,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Set default tab
             document.querySelector('.tab-link.active').click();
-
+            
+            fetchDashboardStats();
             fetchResults();
             fetchRoster();
             fetchAnalysis();
@@ -278,6 +356,21 @@
             document.getElementById('filter-status').addEventListener('change', applyRosterFilters);
             document.getElementById('roster-search').addEventListener('input', applyRosterFilters);
         });
+
+        async function fetchDashboardStats() {
+            try {
+                const response = await fetch('/api/dashboard-stats');
+                if (!response.ok) throw new Error('Failed to fetch dashboard stats');
+                const stats = await response.json();
+
+                document.getElementById('total-students').textContent = stats.totalStudents;
+                document.getElementById('exams-taken').textContent = `${stats.examsTaken} / ${stats.totalStudents}`;
+                document.getElementById('average-score').textContent = `${stats.averageScore.toFixed(2)}%`;
+                document.getElementById('pass-rate').textContent = `${stats.passRate.toFixed(2)}%`;
+            } catch (error) {
+                console.error('Error fetching dashboard stats:', error);
+            }
+        }
         
         async function fetchResults() {
             try {
@@ -448,6 +541,7 @@
                 alert(data.message);
                 if (response.ok) {
                     fetchRoster();
+                    fetchDashboardStats();
                 }
             } catch (error) {
                 console.error('Error resetting student:', error);
@@ -469,6 +563,7 @@
                  alert(data.message);
                  if (response.ok) {
                      fetchResults();
+                     fetchDashboardStats();
                  }
              } catch (error) {
                  console.error('Error clearing results:', error);
